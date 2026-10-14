@@ -11,16 +11,21 @@ type NextReminderCardProps = {
 // Translucent card for the dark top panel: a faint canvas tint with a hairline edge.
 const glassStyle = {
   backgroundColor: 'rgba(239, 235, 226, 0.1)',
-  borderWidth: StyleSheet.hairlineWidth,
+  //borderWidth: StyleSheet.hairlineWidth,
   borderColor: 'rgba(239, 235, 226, 0.25)',
 };
+
+const glassStyleExisting = {
+  backgroundColor: 'rgba(239, 235, 226, 0.2)',
+  borderColor: 'rgba(239, 235, 226, 0.25)'
+}
 
 // The reminder closest in time, shown first. Without upcoming reminders it shows an empty state.
 export function NextReminderCard({ reminder }: NextReminderCardProps) {
   if (!reminder) {
     return (
       <View className="flex-1 justify-center rounded-block p-5" style={[glassStyle, { minHeight: 96 }]}>
-        <Text className="font-regular text-sm text-focus-text" style={{ opacity: 0.6 }}>
+        <Text className="font-regular text-lg text-focus-text" style={{ opacity: 0.6 }}>
           Sin recordatorios próximos
         </Text>
       </View>
@@ -30,7 +35,7 @@ export function NextReminderCard({ reminder }: NextReminderCardProps) {
   const remindAt = new Date(reminder.remindAt);
 
   return (
-    <View className="flex-1 justify-between rounded-block p-5" style={[glassStyle, { minHeight: 96 }]}>
+    <View className="flex-1 justify-between rounded-block p-5" style={[glassStyleExisting, { minHeight: 96 }]}>
       <Text className="font-medium text-xs uppercase text-focus-text" style={{ opacity: 0.6 }}>
         Próximo
       </Text>

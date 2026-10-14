@@ -17,7 +17,7 @@ export function VaultSummaryBlock({ count, isPaused = false }: VaultSummaryBlock
       <LavaBackground paused={isPaused} />
 
       <View className="flex-row items-center justify-between">
-        <Icon name="key" size={28} color={colors.amber} />
+        <Icon name="key" size={28} color={colors.chip} />
         <Text className="font-medium text-xs uppercase text-ink-muted">Cifrado en este dispositivo</Text>
       </View>
 

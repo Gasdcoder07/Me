@@ -47,10 +47,6 @@ function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: Reminder
   return (
     <View className="flex-row" style={{ opacity: hasPassed ? 0.45 : 1 }}>
       <View className="w-5 items-center">
-        <View
-          className="mt-6 h-3 w-3 rounded-full bg-canvas"
-          style={{ borderWidth: 1.5, borderColor: colors.ink }}
-        />
         {!isLast && (
           <View
             className="mt-1 flex-1"
@@ -59,7 +55,7 @@ function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: Reminder
         )}
       </View>
 
-      <View className="mb-3 ml-3 flex-1">
+      <View className="mb-3 flex-1">
         <SwipeToDelete accessibilityLabel={`Borrar ${reminder.title}`} onDelete={onDelete}>
           <ItemCard
             icon="clock"
@@ -68,16 +64,6 @@ function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: Reminder
             chips={[formatTime(remindAt)]}
             accessibilityLabel={`Abrir ${reminder.title}`}
             onPress={onOpen}
-            accessory={
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Eliminar ${reminder.title}`}
-                hitSlop={12}
-                onPress={onDelete}
-              >
-                <Icon name="trash" size={20} color={colors.inkMuted} />
-              </Pressable>
-            }
           />
         </SwipeToDelete>
       </View>
