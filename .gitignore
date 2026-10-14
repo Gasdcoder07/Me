@@ -17,6 +17,7 @@ expo-env.d.ts
 *.jks
 *.p8
 *.p12
+*.md
 *.key
 *.mobileprovision
 
