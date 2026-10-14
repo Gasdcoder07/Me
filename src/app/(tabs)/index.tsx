@@ -11,6 +11,7 @@ import { CredentialList } from '@/components/vault/CredentialList';
 import { VaultSummaryBlock } from '@/components/vault/VaultSummaryBlock';
 import { deleteCredential } from '@/data/credentials';
 import { useCredentials } from '@/hooks/useCredentials';
+import { useOwnerName } from '@/hooks/useOwnerName';
 import type { Credential, VaultFilter } from '@/types/vault';
 
 const filterOptions: { value: VaultFilter; label: string }[] = [
@@ -22,6 +23,7 @@ const filterOptions: { value: VaultFilter; label: string }[] = [
 
 export default function VaultScreen() {
   const db = useSQLiteContext();
+  const ownerName = useOwnerName();
   const { credentials, isLoading, reload } = useCredentials();
   const [filter, setFilter] = useState<VaultFilter>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -57,7 +59,7 @@ export default function VaultScreen() {
       >
         <View className="flex-row items-end justify-between">
           <View>
-            <Text className="font-regular text-sm text-ink-muted">Tu santuario personal</Text>
+            <Text className="font-regular text-sm text-ink-muted">Hola, {ownerName}</Text>
             {/* pt-2 + line height >= 1.2x font size: keeps the top of the glyphs inside the line box. */}
             <View className="pt-2">
               <Text className="font-display text-ink" style={{ fontSize: 64, lineHeight: 77, letterSpacing: -3 }}>

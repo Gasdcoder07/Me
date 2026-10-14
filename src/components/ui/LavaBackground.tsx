@@ -70,6 +70,38 @@ type LavaBackgroundProps = {
   paused?: boolean;
 };
 
+type LavaCanvasProps = {
+  width: number;
+  height: number;
+  isRunning: boolean;
+};
+
+// The glow drawn at a known size. Use it directly when there is no navigation focus to read (the splash),
+// otherwise go through LavaBackground.
+export function LavaCanvas({ width, height, isRunning }: LavaCanvasProps) {
+  return (
+    <Svg
+      style={StyleSheet.absoluteFill}
+      width={width}
+      height={height}
+      viewBox="0 0 400 300"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <Defs>
+        {lavaBlobs.map((blob) => (
+          <RadialGradient key={blob.id} id={blob.id} cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={blob.color} stopOpacity={blob.peakOpacity} />
+            <Stop offset="1" stopColor={blob.color} stopOpacity={0} />
+          </RadialGradient>
+        ))}
+      </Defs>
+      {lavaBlobs.map((blob) => (
+        <LavaGlow key={blob.id} blob={blob} isRunning={isRunning} />
+      ))}
+    </Svg>
+  );
+}
+
 // Glow layer that fills its parent. The parent is the black surface and must clip (overflow: hidden).
 // The SVG waits for its measured size so the glow covers the whole surface, edge to edge.
 // Tabs keep their screens mounted, so the drift also stops while this screen is not focused.
@@ -85,27 +117,7 @@ export function LavaBackground({ paused = false }: LavaBackgroundProps) {
 
   return (
     <View pointerEvents="none" onLayout={onLayout} style={StyleSheet.absoluteFill}>
-      {size && (
-        <Svg
-          style={StyleSheet.absoluteFill}
-          width={size.width}
-          height={size.height}
-          viewBox="0 0 400 300"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <Defs>
-            {lavaBlobs.map((blob) => (
-              <RadialGradient key={blob.id} id={blob.id} cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={blob.color} stopOpacity={blob.peakOpacity} />
-                <Stop offset="1" stopColor={blob.color} stopOpacity={0} />
-              </RadialGradient>
-            ))}
-          </Defs>
-          {lavaBlobs.map((blob) => (
-            <LavaGlow key={blob.id} blob={blob} isRunning={isRunning} />
-          ))}
-        </Svg>
-      )}
+      {size && <LavaCanvas width={size.width} height={size.height} isRunning={isRunning} />}
     </View>
   );
 }

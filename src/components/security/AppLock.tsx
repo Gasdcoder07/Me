@@ -5,6 +5,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 
 import { Icon } from '@/components/icons/Icon';
 import { colors } from '@/constants/theme';
+import { useOwnerName } from '@/hooks/useOwnerName';
 
 type LockStatus = 'locked' | 'failed' | 'unlocked';
 
@@ -16,6 +17,7 @@ type AppLockProps = {
 // passcode fallback), so no vault data is read or rendered before unlock.
 // The vault locks again whenever the app goes to the background.
 export function AppLock({ children }: AppLockProps) {
+  const ownerName = useOwnerName();
   const [status, setStatus] = useState<LockStatus>('locked');
   // Mirror of `status` for AppState listeners, which would otherwise see a stale value.
   const statusRef = useRef<LockStatus>('locked');
@@ -71,7 +73,7 @@ export function AppLock({ children }: AppLockProps) {
     <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.canvas }}>
       <View className="flex-1 items-center justify-center gap-4">
         <Icon name="key" size={40} color={colors.inkFaint} />
-        <Text className="font-regular text-sm text-ink-muted">Bóveda bloqueada</Text>
+        <Text className="font-regular text-sm text-ink-muted">Bóveda de {ownerName} bloqueada</Text>
         {status === 'failed' && (
           <Pressable accessibilityRole="button" hitSlop={12} onPress={() => void authenticate()}>
             <Text className="font-medium text-sm text-ink">Intentar de nuevo</Text>

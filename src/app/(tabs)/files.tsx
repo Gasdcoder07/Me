@@ -11,10 +11,12 @@ import { Screen } from '@/components/ui/Screen';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { deleteDocument } from '@/data/documents';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useOwnerName } from '@/hooks/useOwnerName';
 import { ALL_DOCUMENTS, type StoredDocument } from '@/types/documents';
 
 export default function FilesScreen() {
   const db = useSQLiteContext();
+  const ownerName = useOwnerName();
   const { categories, documents, isLoading, reload } = useDocuments();
   const [filter, setFilter] = useState<string>(ALL_DOCUMENTS);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -51,7 +53,7 @@ export default function FilesScreen() {
       >
         <View className="flex-row items-end justify-between">
           <View>
-            <Text className="font-regular text-sm text-ink-muted">Tus documentos</Text>
+            <Text className="font-regular text-sm text-ink-muted">Documentos de {ownerName}</Text>
             {/* pt-2 + line height >= 1.2x font size: keeps the top of the glyphs inside the line box. */}
             <View className="pt-2">
               <Text className="font-display text-ink" style={{ fontSize: 64, lineHeight: 77, letterSpacing: -3 }}>
