@@ -44,7 +44,15 @@
           "faceIDPermission": "Mi usa Face ID para proteger tus claves."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/alarm.wav"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

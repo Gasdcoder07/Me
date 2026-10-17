@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Text, View } from 'react-native';
 
 import { Icon } from '@/components/icons/Icon';
@@ -11,7 +12,7 @@ type VaultSummaryBlockProps = {
 
 // Focus block: pure black, large display number, amber as the single accent.
 // The black base carries slow dark-grey glows that drift like lava behind the content.
-export function VaultSummaryBlock({ count, isPaused = false }: VaultSummaryBlockProps) {
+function VaultSummaryBlockBase({ count, isPaused = false }: VaultSummaryBlockProps) {
   return (
     <View className="bg-focus p-6" style={{ borderRadius: radii.block, overflow: 'hidden' }}>
       <LavaBackground paused={isPaused} />
@@ -34,3 +35,6 @@ export function VaultSummaryBlock({ count, isPaused = false }: VaultSummaryBlock
     </View>
   );
 }
+
+// Memoized: the vault screen re-renders on every filter change and form toggle, and the glow is costly.
+export const VaultSummaryBlock = memo(VaultSummaryBlockBase);

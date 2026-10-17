@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { Reminder } from '@/types/reminders';
 
-// Runs on every launch: the table creation is idempotent.
+// Runs on every launch: the table and its index are both idempotent.
 export async function migrateReminders(db: SQLiteDatabase): Promise<void> {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS reminders (
@@ -11,13 +11,33 @@ export async function migrateReminders(db: SQLiteDatabase): Promise<void> {
       title TEXT NOT NULL,
       remind_at INTEGER NOT NULL
     );
+    CREATE INDEX IF NOT EXISTS idx_reminders_remind_at ON reminders(remind_at);
   `);
 }
 
-// Earliest first, so the first reminder that has not passed yet is the next one.
-export function listReminders(db: SQLiteDatabase): Promise<Reminder[]> {
+// Reminders in [from, to), earliest first. The screen only shows one month, so it never loads the rest.
+export function listRemindersBetween(db: SQLiteDatabase, from: Date, to: Date): Promise<Reminder[]> {
   return db.getAllAsync<Reminder>(
-    'SELECT id, title, remind_at AS remindAt FROM reminders ORDER BY remind_at ASC',
+    'SELECT id, title, remind_at AS remindAt FROM reminders WHERE remind_at >= ? AND remind_at < ? ORDER BY remind_at ASC',
+    from.getTime(),
+    to.getTime(),
+  );
+}
+
+// The first reminder at or after `now`, or null when none is left.
+export function getNextReminder(db: SQLiteDatabase, now: number): Promise<Reminder | null> {
+  return db.getFirstAsync<Reminder>(
+    'SELECT id, title, remind_at AS remindAt FROM reminders WHERE remind_at >= ? ORDER BY remind_at ASC LIMIT 1',
+    now,
+  );
+}
+
+// The soonest reminders at or after `now`, earliest first. Feeds the alarm sync on launch.
+export function listUpcomingReminders(db: SQLiteDatabase, now: number, limit: number): Promise<Reminder[]> {
+  return db.getAllAsync<Reminder>(
+    'SELECT id, title, remind_at AS remindAt FROM reminders WHERE remind_at >= ? ORDER BY remind_at ASC LIMIT ?',
+    now,
+    limit,
   );
 }
 

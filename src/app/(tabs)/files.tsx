@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 
@@ -27,23 +27,27 @@ export default function FilesScreen() {
     [documents, filter],
   );
 
-  const handleDelete = (document: StoredDocument) => {
-    Alert.alert('Eliminar documento', `¿Eliminar "${document.name}"? El archivo se borra del dispositivo.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteDocument(db, document.id);
-            await reload();
-          } catch {
-            Alert.alert('No se pudo eliminar', 'Inténtalo de nuevo.');
-          }
+  // Stable across renders, so memoized document rows do not re-render with the screen.
+  const handleDelete = useCallback(
+    (document: StoredDocument) => {
+      Alert.alert('Eliminar documento', `¿Eliminar "${document.name}"? El archivo se borra del dispositivo.`, [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDocument(db, document.id);
+              await reload();
+            } catch {
+              Alert.alert('No se pudo eliminar', 'Inténtalo de nuevo.');
+            }
+          },
         },
-      },
-    ]);
-  };
+      ]);
+    },
+    [db, reload],
+  );
 
   return (
     <Screen>

@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/icons/Icon';
@@ -99,7 +100,7 @@ export function MonthGrid({
   compact = false,
 }: MonthGridProps) {
   const today = startOfDay(new Date());
-  const weeks = getMonthWeeks(month);
+  const weeks = useMemo(() => getMonthWeeks(month), [month]);
 
   return (
     <View className="bg-canvas">
@@ -121,7 +122,7 @@ export function MonthGrid({
                 nextReminderId={nextReminderId}
                 now={now}
                 compact={compact}
-                onPress={() => date && onSelectDate(date)}
+                onSelect={onSelectDate}
               />
             );
           })}
@@ -201,10 +202,11 @@ type DayCellProps = {
   nextReminderId: string | null;
   now?: number;
   compact: boolean;
-  onPress: () => void;
+  onSelect: (date: Date) => void;
 };
 
-function DayCell({
+// Memoized: the screen re-renders every minute for the clock, and most cells did not change.
+const DayCell = memo(function DayCell({
   date,
   dayIndex,
   hasTopBorder,
@@ -215,7 +217,7 @@ function DayCell({
   nextReminderId,
   now,
   compact,
-  onPress,
+  onSelect,
 }: DayCellProps) {
   const cellStyle = {
     flex: 1,
@@ -250,7 +252,7 @@ function DayCell({
       accessibilityLabel={`${date.getDate()}`}
       accessibilityState={{ selected: isSelected, disabled: isDisabled }}
       disabled={isDisabled}
-      onPress={onPress}
+      onPress={() => onSelect(date)}
       style={cellStyle}
     >
       <View
@@ -282,7 +284,7 @@ function DayCell({
       )}
     </Pressable>
   );
-}
+});
 
 type ReminderChipProps = {
   title: string;

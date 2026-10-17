@@ -1,17 +1,18 @@
-import { Text, View } from 'react-native';
+import { Text, View } from "react-native";
 
-import { Icon } from '@/components/icons/Icon';
-import { CenteredModal } from '@/components/ui/CenteredModal';
-import { DetailField } from '@/components/ui/DetailField';
-import { Tag } from '@/components/ui/Tag';
+import { Icon } from "@/components/icons/Icon";
+import { CenteredModal } from "@/components/ui/CenteredModal";
+import { DetailField } from "@/components/ui/DetailField";
+import { Tag } from "@/components/ui/Tag";
 import {
   credentialCategoryIcon,
   credentialCategoryLabel,
   credentialSecretLabel,
   credentialUsernameLabel,
-} from '@/components/vault/credentialCategory';
-import { colors } from '@/constants/theme';
-import type { Credential } from '@/types/vault';
+} from "@/components/vault/credentialCategory";
+import { DitherEmblem } from "@/components/vault/DitherEmblem";
+import { colors } from "@/constants/theme";
+import type { Credential } from "@/types/vault";
 
 type CredentialDetailModalProps = {
   credential: Credential;
@@ -19,41 +20,52 @@ type CredentialDetailModalProps = {
   onClose: () => void;
 };
 
-// Shown only after Face ID. The header block mirrors the vault summary: black, amber accent, display title.
+// Shown only after Face ID. The header block mirrors the card: the dithered emblem on top, then black with an amber accent and display title.
 export function CredentialDetailModal({ credential, secret, onClose }: CredentialDetailModalProps) {
   return (
     <CenteredModal onClose={onClose}>
-      <View className="gap-8 rounded-block bg-focus p-6">
-        <View className="flex-row items-center justify-between">
-          <Icon name={credentialCategoryIcon[credential.category]} size={28} color={colors.amber} />
-          <Text className="font-medium text-xs uppercase text-focus-text" style={{ opacity: 0.6 }}>
-            {credentialCategoryLabel[credential.category]}
-          </Text>
-        </View>
+      <View
+        className="rounded-block bg-linear-to-tl from-focus to-focus/80"
+        style={{ overflow: "hidden" }}
+      >
+        <View className="gap-8 p-6">
+          <View className="flex-row items-center justify-between">
+            <Text
+              className="font-medium text-xs uppercase text-focus-text"
+              style={{ opacity: 0.6 }}
+            >
+              {credentialCategoryLabel[credential.category]}
+            </Text>
+          </View>
 
-        {/* pt-2 + line height >= 1.2x font size: keeps the top of the glyphs inside the line box. */}
-        <View className="pt-2">
-          <Text
-            className="font-display text-focus-text"
-            style={{ fontSize: 40, lineHeight: 48, letterSpacing: -1.5 }}
-            numberOfLines={2}
-          >
-            {credential.title}
-          </Text>
+          {/* pt-2 + line height >= 1.2x font size: keeps the top of the glyphs inside the line box. */}
+          <View className="pt-2">
+            <Text
+              className="font-display text-focus-text"
+              style={{ fontSize: 40, lineHeight: 48, letterSpacing: -1.5 }}
+              numberOfLines={2}
+            >
+              {credential.title}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {credential.category !== 'identity' && (
+      {credential.category !== "identity" && (
         <>
           <View className="flex-row flex-wrap gap-2">
             <Tag label={credential.username} />
           </View>
 
-          <DetailField label={credentialUsernameLabel[credential.category]} value={credential.username} />
+          <DetailField
+            label={credentialUsernameLabel[credential.category]}
+            value={credential.username}
+            copyable
+          />
         </>
       )}
 
-      <DetailField label={credentialSecretLabel[credential.category]} value={secret} />
+      <DetailField label={credentialSecretLabel[credential.category]} value={secret} copyable />
     </CenteredModal>
   );
 }

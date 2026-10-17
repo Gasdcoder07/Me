@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  Text,
+  View,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { CircleButton } from '@/components/ui/CircleButton';
@@ -27,6 +36,20 @@ export default function VaultScreen() {
   const { credentials, isLoading, reload } = useCredentials();
   const [filter, setFilter] = useState<VaultFilter>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  // The glow behind the summary pauses once the summary has scrolled out of view. A boolean state
+  // changes only at that edge, so the screen does not re-render on every scroll frame.
+  const [isSummaryOffscreen, setIsSummaryOffscreen] = useState(false);
+  const summaryBottom = useRef(0);
+
+  const handleSummaryLayout = (event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    summaryBottom.current = y + height;
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIsSummaryOffscreen(event.nativeEvent.contentOffset.y > summaryBottom.current);
+  };
 
   const visibleCredentials = useMemo(
     () => (filter === 'all' ? credentials : credentials.filter((credential) => credential.category === filter)),
@@ -41,6 +64,14 @@ export default function VaultScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
+            // Second check after the confirmation: the delete is irreversible, so it needs Face ID / Touch ID again.
+            const result = await LocalAuthentication.authenticateAsync({
+              promptMessage: `Confirma tu identidad para eliminar ${credential.title}`,
+              cancelLabel: 'Cancelar',
+              disableDeviceFallback: false,
+            });
+            if (!result.success) return;
+
             await deleteCredential(db, credential.id);
             await reload();
           } catch {
@@ -55,6 +86,8 @@ export default function VaultScreen() {
     <Screen>
       <ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 140, gap: 32 }}
       >
         <View className="flex-row items-end justify-between">
@@ -76,7 +109,12 @@ export default function VaultScreen() {
           />
         </View>
 
-        <VaultSummaryBlock count={credentials.length} isPaused={isFormOpen} />
+        <View onLayout={handleSummaryLayout}>
+          <VaultSummaryBlock
+            count={credentials.length}
+            isPaused={isFormOpen || isDetailOpen || isSummaryOffscreen}
+          />
+        </View>
 
         <SegmentedToggle options={filterOptions} value={filter} onChange={setFilter} />
 
@@ -88,7 +126,11 @@ export default function VaultScreen() {
                 Tu bóveda está vacía. Usa + para guardar tu primera credencial.
               </Text>
             ) : (
-              <CredentialList credentials={visibleCredentials} onDelete={handleDelete} />
+              <CredentialList
+                credentials={visibleCredentials}
+                onDelete={handleDelete}
+                onDetailOpenChange={setIsDetailOpen}
+              />
             ))}
         </View>
       </ScrollView>

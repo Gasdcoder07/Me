@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 export type IconName =
@@ -12,7 +12,9 @@ export type IconName =
   | 'book'
   | 'chevron'
   | 'trash'
-  | 'close';
+  | 'close'
+  | 'copy'
+  | 'check';
 
 // Thin line icons on a 24-unit grid, drawn with simple geometric primitives.
 const shapes: Record<IconName, ReactNode> = {
@@ -82,6 +84,13 @@ const shapes: Record<IconName, ReactNode> = {
       <Path d="M18 6L6 18" />
     </>
   ),
+  copy: (
+    <>
+      <Rect x="9" y="9" width="11" height="11" rx="2.5" />
+      <Path d="M15 9V6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15H9" />
+    </>
+  ),
+  check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
 };
 
 type IconProps = {
@@ -90,7 +99,7 @@ type IconProps = {
   size?: number;
 };
 
-export function Icon({ name, color, size = 24 }: IconProps) {
+function IconBase({ name, color, size = 24 }: IconProps) {
   return (
     <Svg
       width={size}
@@ -106,3 +115,6 @@ export function Icon({ name, color, size = 24 }: IconProps) {
     </Svg>
   );
 }
+
+// Memoized: icons sit in lists and the tab bar, and re-rendering each SVG on every parent render is wasted work.
+export const Icon = memo(IconBase);

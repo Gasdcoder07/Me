@@ -1,7 +1,6 @@
 import '../global.css';
 
 import {
-  Outfit_300Light,
   Outfit_400Regular,
   Outfit_500Medium,
   Outfit_600SemiBold,
@@ -9,9 +8,9 @@ import {
   useFonts,
 } from '@expo-google-fonts/outfit';
 import { Stack } from 'expo-router';
-import { SQLiteProvider, type SQLiteDatabase } from 'expo-sqlite';
+import { SQLiteProvider, useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { LaunchGate } from '@/components/launch/LaunchGate';
@@ -22,6 +21,7 @@ import { CREDENTIALS_DATABASE_NAME, migrateDatabase } from '@/data/credentials';
 import { migrateDocuments } from '@/data/documents';
 import { migrateOwner } from '@/data/owner';
 import { migrateReminders } from '@/data/reminders';
+import { syncReminderNotifications } from '@/services/reminderNotifications';
 
 // Module-level so its identity never changes. SQLiteProvider closes and reopens the database
 // whenever onInit changes, which would cut off queries still running.
@@ -33,9 +33,20 @@ async function initializeDatabase(db: SQLiteDatabase) {
   await migrateOwner(db);
 }
 
+// Re-arms the reminder notifications once the database is open. Renders nothing.
+function ReminderAlarmSync() {
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    // A failed sync leaves the notifications already scheduled in place, so there is nothing to show.
+    void syncReminderNotifications(db).catch(() => undefined);
+  }, [db]);
+
+  return null;
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Outfit_300Light,
     Outfit_400Regular,
     Outfit_500Medium,
     Outfit_600SemiBold,
@@ -53,6 +64,7 @@ export default function RootLayout() {
       {fontsLoaded ? (
         <Suspense fallback={<SplashScreen />}>
           <SQLiteProvider databaseName={CREDENTIALS_DATABASE_NAME} onInit={initializeDatabase} useSuspense>
+            <ReminderAlarmSync />
             <LaunchGate>
               <AppLock>
                 <Stack

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Icon } from '@/components/icons/Icon';
@@ -25,8 +26,8 @@ export function ReminderList({ reminders, now, onOpen, onDelete }: ReminderListP
           reminder={reminder}
           hasPassed={reminder.remindAt < now}
           isLast={index === reminders.length - 1}
-          onOpen={() => onOpen(reminder)}
-          onDelete={() => onDelete(reminder)}
+          onOpen={onOpen}
+          onDelete={onDelete}
         />
       ))}
     </View>
@@ -37,11 +38,12 @@ type ReminderRowProps = {
   reminder: Reminder;
   hasPassed: boolean;
   isLast: boolean;
-  onOpen: () => void;
-  onDelete: () => void;
+  onOpen: (reminder: Reminder) => void;
+  onDelete: (reminder: Reminder) => void;
 };
 
-function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: ReminderRowProps) {
+// Memoized: with `now` ticking every minute, a row only re-renders when its own "passed" state flips.
+const ReminderRow = memo(function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: ReminderRowProps) {
   const remindAt = new Date(reminder.remindAt);
 
   return (
@@ -56,17 +58,17 @@ function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: Reminder
       </View>
 
       <View className="mb-3 flex-1">
-        <SwipeToDelete accessibilityLabel={`Borrar ${reminder.title}`} onDelete={onDelete}>
+        <SwipeToDelete accessibilityLabel={`Borrar ${reminder.title}`} onDelete={() => onDelete(reminder)}>
           <ItemCard
             icon="clock"
             badge={`${weekdayShort(remindAt)} ${remindAt.getDate()}`}
             title={reminder.title}
             chips={[formatTime(remindAt)]}
             accessibilityLabel={`Abrir ${reminder.title}`}
-            onPress={onOpen}
+            onPress={() => onOpen(reminder)}
           />
         </SwipeToDelete>
       </View>
     </View>
   );
-}
+});

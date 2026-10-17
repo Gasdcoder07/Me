@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Text, View } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 
-import { ItemCard } from '@/components/ui/ItemCard';
 import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
+import { CredentialCard } from '@/components/vault/CredentialCard';
 import { CredentialDetailModal } from '@/components/vault/CredentialDetailModal';
-import { credentialCategoryIcon, credentialCategoryLabel } from '@/components/vault/credentialCategory';
 import { getCredentialSecret } from '@/data/credentials';
 import type { Credential } from '@/types/vault';
 
 type CredentialListProps = {
   credentials: Credential[];
   onDelete: (credential: Credential) => void;
+  // Tells the parent while a detail is open, so it can pause the glow behind the overlay.
+  onDetailOpenChange?: (isOpen: boolean) => void;
 };
 
 type OpenedCredential = {
@@ -21,10 +22,15 @@ type OpenedCredential = {
 
 // Each row opens a centred detail. The secret is never listed here, and it is only read
 // from SecureStore after Face ID (or the device passcode) has succeeded.
-export function CredentialList({ credentials, onDelete }: CredentialListProps) {
+export function CredentialList({ credentials, onDelete, onDetailOpenChange }: CredentialListProps) {
   const [opened, setOpened] = useState<OpenedCredential | null>(null);
 
-  const handleOpen = async (credential: Credential) => {
+  useEffect(() => {
+    onDetailOpenChange?.(opened !== null);
+  }, [opened, onDetailOpenChange]);
+
+  // Stable across renders, so memoized cards do not re-render when the list does.
+  const handleOpen = useCallback(async (credential: Credential) => {
     try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: `Confirma tu identidad para ver ${credential.title}`,
@@ -43,7 +49,7 @@ export function CredentialList({ credentials, onDelete }: CredentialListProps) {
     } catch {
       Alert.alert('No se pudo abrir', 'Inténtalo de nuevo.');
     }
-  };
+  }, []);
 
   return (
     <>
@@ -57,13 +63,10 @@ export function CredentialList({ credentials, onDelete }: CredentialListProps) {
               accessibilityLabel={`Borrar ${credential.title}`}
               onDelete={() => onDelete(credential)}
             >
-              <ItemCard
-                icon={credentialCategoryIcon[credential.category]}
-                badge={credentialCategoryLabel[credential.category]}
-                title={credential.title}
-                chips={credential.category === 'identity' ? [] : [credential.username]}
+              <CredentialCard
+                credential={credential}
                 accessibilityLabel={`Abrir ${credential.title}`}
-                onPress={() => void handleOpen(credential)}
+                onPress={handleOpen}
               />
             </SwipeToDelete>
           ))}

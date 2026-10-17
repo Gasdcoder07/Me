@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -20,16 +20,24 @@ export function CenteredModal({ onClose, children }: CenteredModalProps) {
   // 0 = closed, 1 = fully open.
   const progress = useSharedValue(0);
   const [isClosing, setIsClosing] = useState(false);
+  // Parents pass an inline onClose, which changes on every render. Reading it from a ref keeps a re-render
+  // during the close animation from restarting that animation.
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (isClosing) {
+      const finish = () => onCloseRef.current();
       progress.value = withTiming(0, ANIMATION, (finished) => {
-        if (finished) scheduleOnRN(onClose);
+        if (finished) scheduleOnRN(finish);
       });
     } else {
       progress.value = withTiming(1, ANIMATION);
     }
-  }, [isClosing, onClose, progress]);
+  }, [isClosing, progress]);
 
   const close = () => setIsClosing(true);
 

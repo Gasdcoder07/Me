@@ -38,6 +38,8 @@ export async function migrateDocuments(db: SQLiteDatabase): Promise<void> {
       mime_type TEXT,
       created_at INTEGER NOT NULL
     );
+    CREATE INDEX IF NOT EXISTS idx_documents_category_id ON documents(category_id);
+    CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at);
   `);
 
   for (const category of builtinCategories) {

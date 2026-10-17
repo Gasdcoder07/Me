@@ -135,10 +135,14 @@ function LavaGlow({ blob, isRunning }: LavaGlowProps) {
   const r = useSharedValue(blob.from.r);
 
   useEffect(() => {
-    if (!isRunning) {
+    const stop = () => {
       cancelAnimation(cx);
       cancelAnimation(cy);
       cancelAnimation(r);
+    };
+
+    if (!isRunning) {
+      stop();
       return;
     }
 
@@ -148,6 +152,9 @@ function LavaGlow({ blob, isRunning }: LavaGlowProps) {
     cx.value = loop(blob.to.cx);
     cy.value = loop(blob.to.cy);
     r.value = loop(blob.to.r);
+
+    // Unmounting (the lock screen, a screen change) must stop the infinite loops too, not just pause them.
+    return stop;
   }, [blob, isRunning, cx, cy, r]);
 
   const animatedProps = useAnimatedProps(() => ({

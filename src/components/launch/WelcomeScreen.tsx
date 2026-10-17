@@ -1,20 +1,28 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 
-import { LavaCanvas } from '@/components/ui/LavaBackground';
-import { LineField } from '@/components/ui/LineField';
-import { Screen } from '@/components/ui/Screen';
-import { colors } from '@/constants/theme';
-import { useKeyboardHeight } from '@/hooks/useKeyboard';
+import { LavaCanvas } from "@/components/ui/LavaBackground";
+import { LineField } from "@/components/ui/LineField";
+import { Screen } from "@/components/ui/Screen";
+import { colors } from "@/constants/theme";
+import { useFieldScroll, useKeyboardHeight } from "@/hooks/useKeyboard";
 
 const NAME_MAX_LENGTH = 40;
 const HERO_HEIGHT = 280;
 // The canvas veil starts at 70% over the top of the band (dark at about 30%) and eases to full canvas at the bottom.
-const veilColors = ['rgba(233, 238, 243, 0.7)', colors.canvas] as const;
+const veilColors = ["rgba(255, 255, 255, 0)", colors.canvas] as const;
 
 type WelcomeScreenProps = {
   // Null on the first launch: the screen asks for the name. Otherwise the stored name is shown.
@@ -24,9 +32,10 @@ type WelcomeScreenProps = {
 
 // Greeting after the splash. The owner's name is the only thing stored; there is no session behind it.
 export function WelcomeScreen({ savedName, onContinue }: WelcomeScreenProps) {
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardHeight();
+  const { scrollRef, scrollToEnd } = useFieldScroll();
   const { width } = useWindowDimensions();
 
   const name = savedName ?? draft.trim();
@@ -36,9 +45,10 @@ export function WelcomeScreen({ savedName, onContinue }: WelcomeScreenProps) {
     if (canContinue) onContinue(name);
   };
 
-  // The keyboard pushes the button up, the greeting stays where it is.
-  const footerStyle = useAnimatedStyle(
-    () => ({ paddingBottom: Math.max(insets.bottom, keyboard.value) + 24 }),
+  // The keyboard lifts the whole body (greeting, field and button) by its height, so the button always sits
+  // above the keyboard and the field never ends up underneath it.
+  const bodyStyle = useAnimatedStyle(
+    () => ({ paddingBottom: Math.max(insets.bottom, keyboard.value) }),
     [insets.bottom, keyboard],
   );
 
@@ -52,10 +62,11 @@ export function WelcomeScreen({ savedName, onContinue }: WelcomeScreenProps) {
         style={{
           height: HERO_HEIGHT + insets.top,
           marginTop: -insets.top,
-          overflow: 'hidden',
+          overflow: "hidden",
           backgroundColor: colors.focus,
         }}
       >
+        <StatusBar barStyle={"light-content"} />
         <LavaCanvas width={width} height={HERO_HEIGHT + insets.top} isRunning />
         <BlurView tint="dark" intensity={55} style={StyleSheet.absoluteFill} />
         <LinearGradient
@@ -66,54 +77,72 @@ export function WelcomeScreen({ savedName, onContinue }: WelcomeScreenProps) {
         />
       </View>
 
-      <View className="flex-1 justify-center gap-10 px-6">
-        <View>
-          <Text className="font-display text-ink" style={{ fontSize: 56, lineHeight: 64, letterSpacing: -2 }}>
-            Hola,
-          </Text>
-          <Text className="font-display text-ink" style={{ fontSize: 56, lineHeight: 64, letterSpacing: -2 }}>
-            bienvenido a Mi.
-          </Text>
-        </View>
-
-        {savedName ? (
-          <Text className="font-title text-2xl text-ink">{savedName}</Text>
-        ) : (
-          <LineField
-            label="Tu nombre"
-            placeholder="Escribe tu nombre"
-            value={draft}
-            onChangeText={setDraft}
-            maxLength={NAME_MAX_LENGTH}
-            autoFocus
-            autoCapitalize="words"
-            returnKeyType="done"
-            onSubmitEditing={submit}
-          />
-        )}
-      </View>
-
-      <Animated.View style={[{ paddingHorizontal: 24 }, footerStyle]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Continuar"
-          accessibilityState={{ disabled: !canContinue }}
-          disabled={!canContinue}
-          onPress={submit}
-          style={({ pressed }) => [
-            {
-              height: 56,
-              borderRadius: 28,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.focus,
-            },
-            !canContinue && { opacity: 0.3 },
-            pressed && { opacity: 0.7 },
-          ]}
+      <Animated.View style={[{ flex: 1 }, bodyStyle]}>
+        {/* Scrolls only on short screens, when greeting and field do not fit above the keyboard. */}
+        <ScrollView
+          ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            gap: 40,
+            paddingHorizontal: 24,
+          }}
         >
-          <Text className="font-medium text-base text-focus-text">Continuar</Text>
-        </Pressable>
+          <View>
+            <Text
+              className="font-display text-ink"
+              style={{ fontSize: 56, lineHeight: 64, letterSpacing: -2 }}
+            >
+              Hola,
+            </Text>
+            <Text
+              className="font-display text-ink"
+              style={{ fontSize: 56, lineHeight: 64, letterSpacing: -2 }}
+            >
+              bienvenido a Mi.
+            </Text>
+          </View>
+
+          {savedName ? (
+            <Text className="font-title text-2xl text-ink">{savedName}</Text>
+          ) : (
+            <LineField
+              label="Tu nombre"
+              placeholder="Escribe tu nombre"
+              value={draft}
+              onChangeText={setDraft}
+              onFocus={scrollToEnd}
+              maxLength={NAME_MAX_LENGTH}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={submit}
+            />
+          )}
+        </ScrollView>
+
+        <View style={{ paddingHorizontal: 24, paddingBottom: 24 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Continuar"
+            accessibilityState={{ disabled: !canContinue }}
+            disabled={!canContinue}
+            onPress={submit}
+            style={({ pressed }) => [
+              {
+                height: 56,
+                borderRadius: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: colors.focus,
+              },
+              !canContinue && { opacity: 0.3 },
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Text className="font-medium text-base text-focus-text">Continuar</Text>
+          </Pressable>
+        </View>
       </Animated.View>
     </Screen>
   );

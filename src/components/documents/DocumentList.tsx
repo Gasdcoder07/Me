@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { View } from 'react-native';
 
 import { type IconName } from '@/components/icons/Icon';
@@ -32,8 +33,8 @@ export function DocumentList({ documents, categories, onOpen, onDelete }: Docume
           icon={categoryIcon[document.categoryId] ?? 'files'}
           categoryName={categoryNames.get(document.categoryId) ?? ''}
           isLast={index === documents.length - 1}
-          onOpen={() => onOpen(document)}
-          onDelete={() => onDelete(document)}
+          onOpen={onOpen}
+          onDelete={onDelete}
         />
       ))}
     </View>
@@ -45,11 +46,19 @@ type DocumentRowProps = {
   icon: IconName;
   categoryName: string;
   isLast: boolean;
-  onOpen: () => void;
-  onDelete: () => void;
+  onOpen: (document: StoredDocument) => void;
+  onDelete: (document: StoredDocument) => void;
 };
 
-function DocumentRow({ document, icon, categoryName, isLast, onOpen, onDelete }: DocumentRowProps) {
+// Memoized: rows only re-render when their own document or position changes.
+const DocumentRow = memo(function DocumentRow({
+  document,
+  icon,
+  categoryName,
+  isLast,
+  onOpen,
+  onDelete,
+}: DocumentRowProps) {
   return (
     <View className="flex-row">
       <View className="w-5 items-center">
@@ -66,17 +75,17 @@ function DocumentRow({ document, icon, categoryName, isLast, onOpen, onDelete }:
       </View>
 
       <View className="mb-3 ml-3 flex-1">
-        <SwipeToDelete accessibilityLabel={`Borrar ${document.name}`} onDelete={onDelete}>
+        <SwipeToDelete accessibilityLabel={`Borrar ${document.name}`} onDelete={() => onDelete(document)}>
           <ItemCard
             icon={icon}
             badge={categoryName}
             title={document.name}
             chips={[isPdfDocument(document) ? 'PDF' : 'Imagen']}
             accessibilityLabel={`Abrir ${document.name}`}
-            onPress={onOpen}
+            onPress={() => onOpen(document)}
           />
         </SwipeToDelete>
       </View>
     </View>
   );
-}
+});
