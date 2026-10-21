@@ -1,7 +1,7 @@
 import { StyleSheet, type ViewStyle } from 'react-native';
 
 // Two independent choices. Appearance (light or dark) applies to every color theme.
-// A color theme changes only the accent colors. Everything else is neutral, so each theme is Niebla with another accent.
+// A color theme sets the accent colors, the focus blocks and the glow. The neutrals (canvas, text, chips) are the same in every theme.
 export type Appearance = 'light' | 'dark';
 export type ColorThemeId = 'niebla' | 'esmeralda' | 'anil' | 'rosa' | 'ruby';
 
@@ -11,7 +11,7 @@ export type Palette = {
   ink: string;
   inkMuted: string;
   inkFaint: string;
-  // Focus blocks. Black in Niebla; in the other themes, a deep shade of the accent.
+  // Focus blocks. Each color theme sets its own in each appearance (see `accents`).
   focus: string;
   focusText: string;
   // Primary surfaces: the active tab, solid buttons and the selected option of a toggle.
@@ -34,10 +34,9 @@ export type Palette = {
   statusBarOnFocus: 'dark' | 'light';
 };
 
-type Neutrals = Omit<Palette, 'accent' | 'onAccent' | 'highlight' | 'onHighlight'>;
+type Neutrals = Omit<Palette, 'focus' | 'accent' | 'onAccent' | 'highlight' | 'onHighlight' | 'lava'>;
 
-// Light is the original Niebla palette. Dark keeps the same roles: focus blocks are a raised charcoal,
-// text is a soft off-white with a muted secondary tone, and the glow is kept subdued so it never competes with text.
+// Light is the original Niebla palette. Dark keeps the same roles: text is a soft off-white with a muted secondary tone.
 const neutrals: Record<Appearance, Neutrals> = {
   light: {
     background: '#808080',
@@ -45,11 +44,9 @@ const neutrals: Record<Appearance, Neutrals> = {
     ink: '#0a0a0a',
     inkMuted: '#8f8b84',
     inkFaint: '#c9c5bc',
-    focus: '#0a0a0a',
     focusText: '#f2efe8',
     coral: '#f26b5b',
     chip: '#e2ddd3',
-    lava: ['#2c2c2c', '#3a3a3a', '#1d1d1d', '#4a4a4a'],
     appearance: 'light',
     statusBar: 'dark',
     statusBarOnFocus: 'light',
@@ -60,43 +57,110 @@ const neutrals: Record<Appearance, Neutrals> = {
     ink: '#e4e6ea',
     inkMuted: '#9aa1ab',
     inkFaint: '#353b45',
-    focus: '#272c35',
     focusText: '#eceef2',
     coral: '#f47a6c',
     chip: '#2b3038',
-    lava: ['#2a303b', '#313845', '#20252e', '#3a4150'],
     appearance: 'dark',
     statusBar: 'light',
     statusBarOnFocus: 'light',
   },
 };
 
-type Accent = Pick<Palette, 'accent' | 'onAccent' | 'highlight' | 'onHighlight'>;
+type Accent = Pick<Palette, 'focus' | 'accent' | 'onAccent' | 'highlight' | 'onHighlight' | 'lava'>;
 
-// Each color theme in each appearance. Niebla's primary is the neutral focus (black in light, so the original
-// look is kept). In dark, Niebla's primary is inverted to light, so solid controls keep their contrast.
-// The other themes use their color for both the primary surfaces and the highlights, and their focus blocks
-// and glow are tinted from it (see tintedSurface).
+// Each color theme in each appearance: its focus blocks, its glow and its accent roles. The accent is a mid tone
+// of the glow, so the primary surfaces stay sober. The highlights keep the brighter color: Niebla's is amber.
+// In light, the darkest glow tone is lifted above the focus block, so it never reads as a dark hole in the panel.
 const accents: Record<ColorThemeId, Record<Appearance, Accent>> = {
   niebla: {
-    light: { accent: '#0a0a0a', onAccent: '#f2efe8', highlight: '#f2a33a', onHighlight: '#0a0a0a' },
-    dark: { accent: '#e4e6ea', onAccent: '#0c0d10', highlight: '#f5b35c', onHighlight: '#0c0d10' },
+    light: {
+      focus: '#0a0a0a',
+      accent: '#44403c',
+      onAccent: '#ffffff',
+      highlight: '#f59e0b',
+      onHighlight: '#000000',
+      lava: ['#1c1917', '#292524', '#272727', '#44403c'],
+    },
+    dark: {
+      focus: '#272c35',
+      accent: '#57534e',
+      onAccent: '#ffffff',
+      highlight: '#fbbf24',
+      onHighlight: '#000000',
+      lava: ['#292524', '#44403c', '#1c1917', '#57534e'],
+    },
   },
   esmeralda: {
-    light: { accent: '#2fbf8a', onAccent: '#06140e', highlight: '#2fbf8a', onHighlight: '#06140e' },
-    dark: { accent: '#3ddba0', onAccent: '#06140e', highlight: '#3ddba0', onHighlight: '#06140e' },
+    light: {
+      focus: '#064e3b',
+      accent: '#059669',
+      onAccent: '#000000',
+      highlight: '#10b981',
+      onHighlight: '#022c22',
+      lava: ['#064e3b', '#047857', '#246353', '#059669'],
+    },
+    dark: {
+      focus: '#065f46',
+      accent: '#059669',
+      onAccent: '#000000',
+      highlight: '#34d399',
+      onHighlight: '#022c22',
+      lava: ['#065f46', '#059669', '#064e3b', '#10b981'],
+    },
   },
   anil: {
-    light: { accent: '#4f5bd5', onAccent: '#ffffff', highlight: '#4f5bd5', onHighlight: '#ffffff' },
-    dark: { accent: '#8c95ff', onAccent: '#0c0d18', highlight: '#8c95ff', onHighlight: '#0c0d18' },
+    light: {
+      focus: '#1e3a8a',
+      accent: '#312e81',
+      onAccent: '#ffffff',
+      highlight: '#6366f1',
+      onHighlight: '#ffffff',
+      lava: ['#172554', '#1e3a8a', '#395298', '#312e81'],
+    },
+    dark: {
+      focus: '#1e40af',
+      accent: '#3730a3',
+      onAccent: '#ffffff',
+      highlight: '#818cf8',
+      onHighlight: '#0b1120',
+      lava: ['#1e3a8a', '#1e40af', '#172554', '#3730a3'],
+    },
   },
   rosa: {
-    light: { accent: '#f4b6c8', onAccent: '#2a0f18', highlight: '#f4b6c8', onHighlight: '#2a0f18' },
-    dark: { accent: '#f0a9bd', onAccent: '#2a0f18', highlight: '#f0a9bd', onHighlight: '#2a0f18' },
+    light: {
+      focus: '#881337',
+      accent: '#9f1239',
+      onAccent: '#ffffff',
+      highlight: '#f43f5e',
+      onHighlight: '#ffffff',
+      lava: ['#4c0519', '#881337', '#962f4f', '#9f1239'],
+    },
+    dark: {
+      focus: '#9f1239',
+      accent: '#be123c',
+      onAccent: '#ffffff',
+      highlight: '#fb7185',
+      onHighlight: '#2a0f18',
+      lava: ['#881337', '#9f1239', '#4c0519', '#be123c'],
+    },
   },
   ruby: {
-    light: { accent: '#c8244f', onAccent: '#ffffff', highlight: '#c8244f', onHighlight: '#ffffff' },
-    dark: { accent: '#ff5a7a', onAccent: '#1a0508', highlight: '#ff5a7a', onHighlight: '#1a0508' },
+    light: {
+      focus: '#7f1d1d',
+      accent: '#991b1b',
+      onAccent: '#ffffff',
+      highlight: '#e11d48',
+      onHighlight: '#ffffff',
+      lava: ['#450a0a', '#7f1d1d', '#8e3838', '#991b1b'],
+    },
+    dark: {
+      focus: '#991b1b',
+      accent: '#b91c1c',
+      onAccent: '#ffffff',
+      highlight: '#f43f5e',
+      onHighlight: '#1a0508',
+      lava: ['#7f1d1d', '#991b1b', '#450a0a', '#b91c1c'],
+    },
   },
 };
 
@@ -114,25 +178,8 @@ export function isAppearance(value: unknown): value is Appearance {
   return value === 'light' || value === 'dark';
 }
 
-// The focus block of a color theme is the accent pushed toward black, so the theme's color is the main color of
-// the screen. Its glow is the accent blended into that block, in four tones for the four blobs.
-// Niebla keeps its neutral focus and grey glow, so the original look does not change.
-function tintedSurface(accent: string): Pick<Palette, 'focus' | 'lava'> {
-  const focus = mixHex(accent, '#000000', 0.6);
-  return {
-    focus,
-    lava: [
-      mixHex(focus, accent, 0.45),
-      mixHex(focus, accent, 0.6),
-      mixHex(focus, accent, 0.3),
-      mixHex(focus, accent, 0.8),
-    ],
-  };
-}
-
 export function buildPalette(theme: ColorThemeId, appearance: Appearance): Palette {
-  const palette = { ...neutrals[appearance], ...accents[theme][appearance] };
-  return theme === 'niebla' ? palette : { ...palette, ...tintedSurface(palette.accent) };
+  return { ...neutrals[appearance], ...accents[theme][appearance] };
 }
 
 // Dim layer behind modals and sheets. Black in every theme, so it dims any canvas the same way.
@@ -142,14 +189,6 @@ export const SCRIM = '#0a0a0a';
 function channels(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
   return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-}
-
-// Blend of two hex tokens: t = 0 gives `from`, t = 1 gives `to`.
-function mixHex(from: string, to: string, t: number): string {
-  const start = channels(from);
-  const end = channels(to);
-  const hex = start.map((channel, i) => Math.round(channel + (end[i] - channel) * t).toString(16).padStart(2, '0'));
-  return `#${hex.join('')}`;
 }
 
 // Translucent version of a 6-digit hex token. Glass, fades and tints are derived from the tokens this way,
