@@ -13,7 +13,7 @@ import { ReminderList } from "@/components/time/ReminderList";
 import { CircleButton } from "@/components/ui/CircleButton";
 import { DarkPanel } from "@/components/ui/DarkPanel";
 import { SectionTitle } from "@/components/ui/SectionTitle";
-import { colors } from "@/constants/theme";
+import { useTheme } from "@/theme/ThemeProvider";
 import { deleteReminder } from "@/data/reminders";
 import { useReminders } from "@/hooks/useReminders";
 import { cancelReminderNotifications } from "@/services/reminderNotifications";
@@ -23,6 +23,7 @@ import { dayKey, formatLongDay, isSameDay, startOfMonth } from "@/utils/dates";
 export default function TimeScreen() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [displayedMonth, setDisplayedMonth] = useState(() => startOfMonth(new Date()));
   const { reminders, nextReminder, isLoading, reload } = useReminders(displayedMonth);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -43,9 +44,9 @@ export default function TimeScreen() {
   // The root layout keeps the default dark style for every other screen.
   useFocusEffect(
     useCallback(() => {
-      StatusBar.setStyle("light", true);
-      return () => StatusBar.setStyle("dark", true);
-    }, []),
+      StatusBar.setStyle(colors.statusBarOnFocus, true);
+      return () => StatusBar.setStyle(colors.statusBar, true);
+    }, [colors]),
   );
 
   // Ordered earliest first, so each day's list is already in order for its chips.
@@ -122,6 +123,7 @@ export default function TimeScreen() {
           selectedDate={selectedDate}
           onSelectDate={handleSelectDate}
           remindersByDay={remindersByDay}
+          onOpenReminder={setOpenedReminder}
           nextReminderId={nextReminder?.id ?? null}
           now={now}
         />
@@ -160,6 +162,7 @@ export default function TimeScreen() {
           reminder={openedReminder}
           now={now}
           onClose={() => setOpenedReminder(null)}
+          onDeleted={reload}
         />
       )}
 

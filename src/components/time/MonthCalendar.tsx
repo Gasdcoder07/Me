@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/icons/Icon';
 import { DarkPanel } from '@/components/ui/DarkPanel';
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 import type { Reminder } from '@/types/reminders';
 import {
   addMonths,
@@ -35,6 +35,8 @@ type MonthGridProps = {
   onSelectDate: (date: Date) => void;
   // Reminders of the month, grouped by dayKey. Each day shows up to two as chips.
   remindersByDay?: Map<string, Reminder[]>;
+  // Tapping a day that has reminders calls this with the first one; a chip calls it with its own.
+  onOpenReminder?: (reminder: Reminder) => void;
   // The reminder closest in time. Drawn as a solid black chip.
   nextReminderId?: string | null;
   // Current time in ms. Reminders before it are drawn muted. Without it, none is muted.
@@ -50,6 +52,7 @@ type MonthCalendarProps = MonthHeaderProps & MonthGridProps;
 // Month header: prev/next outline buttons, the month title and the weekday row.
 // Default has no background of its own, so it sits on the dark panel. Compact is ink on the canvas.
 export function MonthHeader({ month, onChangeMonth, compact = false }: MonthHeaderProps) {
+  const { colors } = useTheme();
   const ink = compact ? colors.ink : colors.focusText;
 
   return (
@@ -94,6 +97,7 @@ export function MonthGrid({
   selectedDate,
   onSelectDate,
   remindersByDay,
+  onOpenReminder,
   nextReminderId = null,
   now,
   minDate,
@@ -119,6 +123,7 @@ export function MonthGrid({
                 isSelected={date !== null && selectedDate !== null && isSameDay(date, selectedDate)}
                 isDisabled={date !== null && minDate !== undefined && date < minDate}
                 reminders={dayReminders}
+                onOpenReminder={onOpenReminder}
                 nextReminderId={nextReminderId}
                 now={now}
                 compact={compact}
@@ -140,6 +145,7 @@ export function MonthCalendar(props: MonthCalendarProps) {
       selectedDate={props.selectedDate}
       onSelectDate={props.onSelectDate}
       remindersByDay={props.remindersByDay}
+      onOpenReminder={props.onOpenReminder}
       nextReminderId={props.nextReminderId}
       now={props.now}
       minDate={props.minDate}
@@ -199,6 +205,7 @@ type DayCellProps = {
   isSelected: boolean;
   isDisabled: boolean;
   reminders: Reminder[];
+  onOpenReminder?: (reminder: Reminder) => void;
   nextReminderId: string | null;
   now?: number;
   compact: boolean;
@@ -214,11 +221,13 @@ const DayCell = memo(function DayCell({
   isSelected,
   isDisabled,
   reminders,
+  onOpenReminder,
   nextReminderId,
   now,
   compact,
   onSelect,
 }: DayCellProps) {
+  const { colors } = useTheme();
   const cellStyle = {
     flex: 1,
     minHeight: compact ? COMPACT_CELL_MIN_HEIGHT : CELL_MIN_HEIGHT,
@@ -252,7 +261,8 @@ const DayCell = memo(function DayCell({
       accessibilityLabel={`${date.getDate()}`}
       accessibilityState={{ selected: isSelected, disabled: isDisabled }}
       disabled={isDisabled}
-      onPress={() => onSelect(date)}
+      // The whole square opens the day's first reminder. Days without reminders select as before.
+      onPress={() => (reminders[0] && onOpenReminder ? onOpenReminder(reminders[0]) : onSelect(date))}
       style={cellStyle}
     >
       <View
@@ -274,6 +284,7 @@ const DayCell = memo(function DayCell({
           title={reminder.title}
           isNext={reminder.id === nextReminderId}
           hasPassed={now !== undefined && reminder.remindAt < now}
+          onPress={() => onOpenReminder?.(reminder)}
         />
       ))}
 
@@ -290,10 +301,13 @@ type ReminderChipProps = {
   title: string;
   isNext: boolean;
   hasPassed: boolean;
+  onPress: () => void;
 };
 
 // Truncated title on a soft fill. The next reminder is solid black; passed ones are outlined and muted.
-function ReminderChip({ title, isNext, hasPassed }: ReminderChipProps) {
+// A tap opens the reminder. Being a nested Pressable, it does not also select the day under it.
+function ReminderChip({ title, isNext, hasPassed, onPress }: ReminderChipProps) {
+  const { colors } = useTheme();
   const surface = isNext
     ? { backgroundColor: colors.focus }
     : hasPassed
@@ -303,10 +317,17 @@ function ReminderChip({ title, isNext, hasPassed }: ReminderChipProps) {
   const textColor = isNext ? colors.focusText : hasPassed ? colors.inkMuted : colors.ink;
 
   return (
-    <View className="rounded-md px-1 py-0.5" style={surface}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Abrir ${title}`}
+      hitSlop={4}
+      onPress={onPress}
+      className="rounded-md px-1 py-0.5"
+      style={surface}
+    >
       <Text numberOfLines={1} className="font-medium" style={{ fontSize: 10, lineHeight: 13, color: textColor }}>
         {title}
       </Text>
-    </View>
+    </Pressable>
   );
 }

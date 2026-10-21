@@ -1,8 +1,14 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { type IconName, Icon } from '@/components/icons/Icon';
-import { colors, radii } from '@/constants/theme';
+import { radii } from '@/constants/theme';
+import { glassOnFocus } from '@/constants/themes';
+import { usePressScale } from '@/hooks/usePressScale';
+import { useTheme } from '@/theme/ThemeProvider';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type ItemCardProps = {
   icon: IconName;
@@ -14,26 +20,29 @@ type ItemCardProps = {
   onPress: () => void;
 };
 
-// Dark card in the spirit of the discovery cards: an amber badge on top, a large title,
+// Dark card in the spirit of the discovery cards: an accent badge on top, a large title,
 // and glass chips for the details. Pressing it opens the item's detail modal.
 export function ItemCard({ icon, badge, title, chips, accessory, accessibilityLabel, onPress }: ItemCardProps) {
+  const { colors } = useTheme();
+  const chipStyle = glassOnFocus(colors);
+  const { animatedStyle, onPressIn, onPressOut } = usePressScale();
+
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
-      style={({ pressed }) => [
-        { borderRadius: radii.block, backgroundColor: colors.focus, padding: 20 },
-        pressed && { opacity: 0.85 },
-      ]}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={[{ borderRadius: radii.block, backgroundColor: colors.focus, padding: 20 }, animatedStyle]}
     >
       <View className="flex-row items-center justify-between">
         <View
           className="flex-row items-center gap-2 rounded-full px-3 py-1.5"
-          style={{ backgroundColor: colors.amber }}
+          style={{ backgroundColor: colors.highlight }}
         >
-          <Icon name={icon} size={16} color={colors.focus} />
-          <Text className="font-title text-xs uppercase text-focus">{badge}</Text>
+          <Icon name={icon} size={16} color={colors.onHighlight} />
+          <Text className="font-title text-xs uppercase text-on-highlight">{badge}</Text>
         </View>
         {accessory}
       </View>
@@ -57,13 +66,6 @@ export function ItemCard({ icon, badge, title, chips, accessory, accessibilityLa
           ))}
         </View>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
-
-// Translucent chip for the black card, the same glass as the next-reminder card.
-const chipStyle = {
-  backgroundColor: 'rgba(239, 235, 226, 0.1)',
-  borderWidth: StyleSheet.hairlineWidth,
-  borderColor: 'rgba(239, 235, 226, 0.25)',
-};

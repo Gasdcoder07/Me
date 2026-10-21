@@ -4,7 +4,7 @@ import type WebViewComponent from 'react-native-webview';
 import { CenteredModal } from '@/components/ui/CenteredModal';
 import { DetailField } from '@/components/ui/DetailField';
 import { Tag } from '@/components/ui/Tag';
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 import { documentFileUri, documentsDirectoryUri } from '@/data/documents';
 import type { StoredDocument } from '@/types/documents';
 import { isPdfDocument } from '@/types/documents';
@@ -21,6 +21,7 @@ type DocumentDetailModalProps = {
 
 // The top block is the document's cover: the first page of a PDF, or the picture itself.
 export function DocumentDetailModal({ document, categoryName, onClose }: DocumentDetailModalProps) {
+  const { colors } = useTheme();
   const isPdf = isPdfDocument(document);
 
   return (

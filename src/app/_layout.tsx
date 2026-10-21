@@ -16,12 +16,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LaunchGate } from '@/components/launch/LaunchGate';
 import { SplashScreen } from '@/components/launch/SplashScreen';
 import { AppLock } from '@/components/security/AppLock';
-import { colors } from '@/constants/theme';
 import { CREDENTIALS_DATABASE_NAME, migrateDatabase } from '@/data/credentials';
 import { migrateDocuments } from '@/data/documents';
 import { migrateOwner } from '@/data/owner';
 import { migrateReminders } from '@/data/reminders';
 import { syncReminderNotifications } from '@/services/reminderNotifications';
+import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 // Module-level so its identity never changes. SQLiteProvider closes and reopens the database
 // whenever onInit changes, which would cut off queries still running.
@@ -45,6 +45,26 @@ function ReminderAlarmSync() {
   return null;
 }
 
+// Status bar follows the theme: light text on a dark canvas, dark text on a light one.
+function ThemedStatusBar() {
+  const { colors } = useTheme();
+  return <StatusBar style={colors.statusBar} />;
+}
+
+// Stack background follows the theme, so a route change never flashes the previous canvas.
+function ThemedStack() {
+  const { colors } = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.canvas },
+      }}
+    />
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
@@ -58,28 +78,26 @@ export default function RootLayout() {
   // The database opens once and stays open. AppLock sits inside it, so locking the app
   // unmounts the screens but never closes the database under a query still in flight.
   // GestureHandlerRootView lets the swipe-to-delete rows receive pan gestures.
+  // ThemeProvider sits outside everything, so the splash screens and the database wait use the saved theme too.
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" />
-      {fontsLoaded ? (
-        <Suspense fallback={<SplashScreen />}>
-          <SQLiteProvider databaseName={CREDENTIALS_DATABASE_NAME} onInit={initializeDatabase} useSuspense>
-            <ReminderAlarmSync />
-            <LaunchGate>
-              <AppLock>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: colors.canvas },
-                  }}
-                />
-              </AppLock>
-            </LaunchGate>
-          </SQLiteProvider>
-        </Suspense>
-      ) : (
-        <SplashScreen showTitle={false} />
-      )}
+      <ThemeProvider>
+        <ThemedStatusBar />
+        {fontsLoaded ? (
+          <Suspense fallback={<SplashScreen />}>
+            <SQLiteProvider databaseName={CREDENTIALS_DATABASE_NAME} onInit={initializeDatabase} useSuspense>
+              <ReminderAlarmSync />
+              <LaunchGate>
+                <AppLock>
+                  <ThemedStack />
+                </AppLock>
+              </LaunchGate>
+            </SQLiteProvider>
+          </Suspense>
+        ) : (
+          <SplashScreen showTitle={false} />
+        )}
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

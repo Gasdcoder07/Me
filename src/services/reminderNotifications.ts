@@ -1,13 +1,13 @@
-import * as Notifications from 'expo-notifications';
-import type { SQLiteDatabase } from 'expo-sqlite';
+import * as Notifications from "expo-notifications";
+import type { SQLiteDatabase } from "expo-sqlite";
 
-import { listUpcomingReminders } from '@/data/reminders';
-import type { Reminder } from '@/types/reminders';
-import { formatTime } from '@/utils/dates';
+import { listUpcomingReminders } from "@/data/reminders";
+import type { Reminder } from "@/types/reminders";
+import { formatTime } from "@/utils/dates";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 // Bundled through the expo-notifications config plugin (see app.json).
-const ALARM_SOUND = 'alarm.wav';
+const ALARM_SOUND = "alarm.wav";
 // iOS keeps at most 64 pending local notifications per app, and each reminder uses two.
 export const MAX_REARMED_REMINDERS = 30;
 
@@ -30,7 +30,9 @@ export async function ensureNotificationPermission(): Promise<boolean> {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
 
-  const requested = await Notifications.requestPermissionsAsync({ ios: { allowAlert: true, allowSound: true } });
+  const requested = await Notifications.requestPermissionsAsync({
+    ios: { allowAlert: true, allowSound: true },
+  });
   return requested.granted;
 }
 
@@ -51,8 +53,11 @@ async function armReminder(reminder: Reminder): Promise<void> {
   if (reminder.remindAt > now) {
     await Notifications.scheduleNotificationAsync({
       identifier: dueId(reminder.id),
-      content: { title: reminder.title, body: `Es hora: ${time}`, sound: ALARM_SOUND },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(reminder.remindAt) },
+      content: { title: reminder.title, body: "No lo olvides !", sound: ALARM_SOUND },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: new Date(reminder.remindAt),
+      },
     });
   }
 
@@ -61,8 +66,15 @@ async function armReminder(reminder: Reminder): Promise<void> {
   if (dayBeforeAt > now) {
     await Notifications.scheduleNotificationAsync({
       identifier: dayBeforeId(reminder.id),
-      content: { title: `Mañana: ${reminder.title}`, body: `Tienes un recordatorio a las ${time}.`, sound: true },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(dayBeforeAt) },
+      content: {
+        title: `Mañana: ${reminder.title}`,
+        body: `Tienes un recordatorio a las ${time}.`,
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: new Date(dayBeforeAt),
+      },
     });
   }
 }

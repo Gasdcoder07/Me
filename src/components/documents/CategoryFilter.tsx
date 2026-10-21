@@ -6,8 +6,10 @@ import { useSQLiteContext } from 'expo-sqlite';
 
 import { Icon } from '@/components/icons/Icon';
 import { LineField } from '@/components/ui/LineField';
-import { colors, radii } from '@/constants/theme';
+import { radii } from '@/constants/theme';
+import { SCRIM, withAlpha } from '@/constants/themes';
 import { useKeyboardHeight } from '@/hooks/useKeyboard';
+import { useTheme } from '@/theme/ThemeProvider';
 import {
   countDocumentsInCategory,
   createDocumentCategory,
@@ -87,6 +89,7 @@ type FilterPillProps = {
 };
 
 function FilterPill({ label, isActive, onPress, trailing = false }: FilterPillProps) {
+  const { colors } = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
@@ -125,6 +128,7 @@ function CategoryMenu({
   onDeleted,
   onClose,
 }: CategoryMenuProps) {
+  const { colors } = useTheme();
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardHeight();
@@ -198,7 +202,7 @@ function CategoryMenu({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(10, 10, 10, 0.35)' }}>
+      <View className="flex-1 justify-end" style={{ backgroundColor: withAlpha(SCRIM, 0.35) }}>
         <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" onPress={handleClose} />
 
         <Animated.View

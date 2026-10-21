@@ -3,22 +3,24 @@ import { Text, View } from 'react-native';
 
 import { Icon } from '@/components/icons/Icon';
 import { LavaBackground } from '@/components/ui/LavaBackground';
-import { colors, radii } from '@/constants/theme';
+import { radii } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type VaultSummaryBlockProps = {
   count: number;
   isPaused?: boolean;
 };
 
-// Focus block: pure black, large display number, amber as the single accent.
-// The black base carries slow dark-grey glows that drift like lava behind the content.
+// Focus block: the theme's base, large display number, the accent as the single highlight.
+// The base carries slow glows, tinted by the color theme, that drift like lava behind the content.
 function VaultSummaryBlockBase({ count, isPaused = false }: VaultSummaryBlockProps) {
+  const { colors } = useTheme();
   return (
     <View className="bg-focus p-6" style={{ borderRadius: radii.block, overflow: 'hidden' }}>
       <LavaBackground paused={isPaused} />
 
       <View className="flex-row items-center justify-between">
-        <Icon name="key" size={28} color={colors.chip} />
+        <Icon name="key" size={28} color={colors.focusText} />
         <Text className="font-medium text-xs uppercase text-ink-muted">Cifrado en este dispositivo</Text>
       </View>
 

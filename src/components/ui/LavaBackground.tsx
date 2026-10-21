@@ -12,10 +12,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
+import { useTheme } from '@/theme/ThemeProvider';
+
 // Drifting radial glows, in a 400 x 300 coordinate space scaled to fill the parent.
+// `tone` indexes the active palette's `lava` colors, so each theme tints the glow.
 type LavaBlob = {
   id: string;
-  color: string;
+  tone: 0 | 1 | 2 | 3;
   peakOpacity: number;
   from: { cx: number; cy: number; r: number };
   to: { cx: number; cy: number; r: number };
@@ -26,7 +29,7 @@ type LavaBlob = {
 const lavaBlobs: LavaBlob[] = [
   {
     id: 'lava-a',
-    color: '#2c2c2c',
+    tone: 0,
     peakOpacity: 0.9,
     from: { cx: 90, cy: 80, r: 150 },
     to: { cx: 230, cy: 170, r: 190 },
@@ -35,7 +38,7 @@ const lavaBlobs: LavaBlob[] = [
   },
   {
     id: 'lava-b',
-    color: '#3a3a3a',
+    tone: 1,
     peakOpacity: 0.8,
     from: { cx: 320, cy: 60, r: 120 },
     to: { cx: 250, cy: 200, r: 160 },
@@ -44,7 +47,7 @@ const lavaBlobs: LavaBlob[] = [
   },
   {
     id: 'lava-c',
-    color: '#1d1d1d',
+    tone: 2,
     peakOpacity: 1,
     from: { cx: 180, cy: 260, r: 170 },
     to: { cx: 60, cy: 150, r: 130 },
@@ -52,9 +55,9 @@ const lavaBlobs: LavaBlob[] = [
     delay: 1500,
   },
   {
-    // Smallest, brightest blob: the occasional dark-grey flash.
+    // Smallest, brightest blob: the occasional flash.
     id: 'lava-d',
-    color: '#4a4a4a',
+    tone: 3,
     peakOpacity: 0.45,
     from: { cx: 330, cy: 250, r: 90 },
     to: { cx: 240, cy: 120, r: 110 },
@@ -79,6 +82,8 @@ type LavaCanvasProps = {
 // The glow drawn at a known size. Use it directly when there is no navigation focus to read (the splash),
 // otherwise go through LavaBackground.
 export function LavaCanvas({ width, height, isRunning }: LavaCanvasProps) {
+  const { colors } = useTheme();
+
   return (
     <Svg
       style={StyleSheet.absoluteFill}
@@ -90,8 +95,8 @@ export function LavaCanvas({ width, height, isRunning }: LavaCanvasProps) {
       <Defs>
         {lavaBlobs.map((blob) => (
           <RadialGradient key={blob.id} id={blob.id} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={blob.color} stopOpacity={blob.peakOpacity} />
-            <Stop offset="1" stopColor={blob.color} stopOpacity={0} />
+            <Stop offset="0" stopColor={colors.lava[blob.tone]} stopOpacity={blob.peakOpacity} />
+            <Stop offset="1" stopColor={colors.lava[blob.tone]} stopOpacity={0} />
           </RadialGradient>
         ))}
       </Defs>

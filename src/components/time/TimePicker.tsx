@@ -2,7 +2,8 @@ import { useRef } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors } from '@/constants/theme';
+import { withAlpha } from '@/constants/themes';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export type TimeValue = { hours: number; minutes: number };
 
@@ -11,10 +12,6 @@ const ITEM_HEIGHT = 44;
 const VISIBLE_ITEMS = 3;
 const HOURS = Array.from({ length: 24 }, (_, index) => index);
 const MINUTES = Array.from({ length: 60 }, (_, index) => index);
-
-// The form sits on the canvas, so the fade ends in the canvas colour (transparent at the very edge).
-const fadeOutColors = [colors.canvas, 'rgba(233, 238, 243, 0)'] as const;
-const fadeInColors = ['rgba(233, 238, 243, 0)', colors.canvas] as const;
 
 type TimePickerProps = {
   value: TimeValue;
@@ -50,6 +47,10 @@ type WheelProps = {
 };
 
 function Wheel({ label, values, selected, onSelect }: WheelProps) {
+  const { colors } = useTheme();
+  // The form sits on the canvas, so the fade ends in the canvas colour (transparent at the very edge).
+  const fadeOutColors = [colors.canvas, withAlpha(colors.canvas, 0)] as const;
+  const fadeInColors = [withAlpha(colors.canvas, 0), colors.canvas] as const;
   const scrollRef = useRef<ScrollView>(null);
 
   // Values are 0, 1, 2, … so the index of a value is the value itself.

@@ -45,6 +45,7 @@
         }
       ],
       "expo-sqlite",
+      "./plugins/withoutPushEntitlement",
       [
         "expo-notifications",
         {

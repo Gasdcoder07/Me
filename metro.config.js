@@ -11,4 +11,24 @@ config.transformer.getTransformOptions = async (...args) => {
   return { ...options, transform: { ...options.transform, inlineRequires: true } };
 };
 
-module.exports = withNativewind(config);
+// Color tokens stay as variables in the bundle, so ThemeProvider can override them at runtime.
+// Without this list, NativeWind would inline the Niebla values and the theme switch would do nothing.
+const THEME_COLOR_VARIABLES = [
+  '--color-background',
+  '--color-canvas',
+  '--color-ink',
+  '--color-ink-muted',
+  '--color-ink-faint',
+  '--color-focus',
+  '--color-focus-text',
+  '--color-accent',
+  '--color-on-accent',
+  '--color-highlight',
+  '--color-on-highlight',
+  '--color-coral',
+  '--color-chip',
+];
+
+module.exports = withNativewind(config, {
+  inlineVariables: { exclude: THEME_COLOR_VARIABLES },
+});

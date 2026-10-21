@@ -14,7 +14,8 @@ export type IconName =
   | 'trash'
   | 'close'
   | 'copy'
-  | 'check';
+  | 'check'
+  | 'palette';
 
 // Thin line icons on a 24-unit grid, drawn with simple geometric primitives.
 const shapes: Record<IconName, ReactNode> = {
@@ -91,6 +92,14 @@ const shapes: Record<IconName, ReactNode> = {
     </>
   ),
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
+  palette: (
+    <>
+      <Path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z" />
+      <Circle cx="7.5" cy="11" r="1" />
+      <Circle cx="10.5" cy="7.5" r="1" />
+      <Circle cx="15" cy="8" r="1" />
+    </>
+  ),
 };
 
 type IconProps = {

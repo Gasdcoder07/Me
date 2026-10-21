@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type ScreenProps = {
   children: ReactNode;
@@ -11,6 +11,7 @@ type ScreenProps = {
 // status bar; the background covers the whole screen with no outer margins.
 // The bottom edge is handled by the floating tab bar.
 export function Screen({ children }: ScreenProps) {
+  const { colors } = useTheme();
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.canvas }}>
       {children}

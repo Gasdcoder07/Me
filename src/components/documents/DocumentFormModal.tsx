@@ -6,9 +6,9 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { Icon } from '@/components/icons/Icon';
 import { FormSheet } from '@/components/ui/FormSheet';
 import { LineField } from '@/components/ui/LineField';
-import { colors } from '@/constants/theme';
 import { createDocumentCategory, importDocument } from '@/data/documents';
 import { useFieldScroll } from '@/hooks/useKeyboard';
+import { useTheme } from '@/theme/ThemeProvider';
 import type { DocumentCategory } from '@/types/documents';
 
 type PickedFile = {
@@ -27,6 +27,7 @@ type DocumentFormModalProps = {
 
 // Bottom-sheet form. Name, file and category; categories can be created inline.
 export function DocumentFormModal({ visible, categories, onClose, onChanged }: DocumentFormModalProps) {
+  const { colors } = useTheme();
   const db = useSQLiteContext();
   const [name, setName] = useState('');
   const [pickedFile, setPickedFile] = useState<PickedFile | null>(null);

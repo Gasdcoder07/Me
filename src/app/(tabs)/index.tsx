@@ -9,6 +9,7 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { CircleButton } from '@/components/ui/CircleButton';
@@ -32,6 +33,7 @@ const filterOptions: { value: VaultFilter; label: string }[] = [
 
 export default function VaultScreen() {
   const db = useSQLiteContext();
+  const router = useRouter();
   const ownerName = useOwnerName();
   const { credentials, isLoading, reload } = useCredentials();
   const [filter, setFilter] = useState<VaultFilter>('all');
@@ -100,13 +102,22 @@ export default function VaultScreen() {
               </Text>
             </View>
           </View>
-          <CircleButton
-            icon="plus"
-            label="Agregar credencial"
-            variant="solid"
-            size={56}
-            onPress={() => setIsFormOpen(true)}
-          />
+          <View className="flex-row items-center gap-2">
+            <CircleButton
+              icon="palette"
+              label="Ajustes"
+              variant="ghost"
+              size={56}
+              onPress={() => router.push('/settings')}
+            />
+            <CircleButton
+              icon="plus"
+              label="Agregar credencial"
+              variant="solid"
+              size={56}
+              onPress={() => setIsFormOpen(true)}
+            />
+          </View>
         </View>
 
         <View onLayout={handleSummaryLayout}>

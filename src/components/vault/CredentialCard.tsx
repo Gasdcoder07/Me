@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 
 import { Icon } from "@/components/icons/Icon";
 import {
@@ -7,8 +8,13 @@ import {
   credentialCategoryLabel,
 } from "@/components/vault/credentialCategory";
 import { DitherEmblem } from "@/components/vault/DitherEmblem";
-import { colors, radii } from "@/constants/theme";
+import { radii } from "@/constants/theme";
+import { glassOnFocus } from "@/constants/themes";
+import { usePressScale } from "@/hooks/usePressScale";
+import { useTheme } from "@/theme/ThemeProvider";
 import type { Credential } from "@/types/vault";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type CredentialCardProps = {
   credential: Credential;
@@ -20,17 +26,19 @@ type CredentialCardProps = {
 // Landscape card on a dithered field. The title sits on the left, the category's dithered shape on the right.
 // The category label is at the top and the username chip under the title. Identity has no chip.
 function CredentialCardBase({ credential, accessibilityLabel, onPress }: CredentialCardProps) {
+  const { colors } = useTheme();
+  const chipStyle = glassOnFocus(colors);
+  const { animatedStyle, onPressIn, onPressOut } = usePressScale();
   const chips = credential.category === "identity" ? [] : [credential.username];
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={() => onPress(credential)}
-      style={({ pressed }) => [
-        { borderRadius: radii.block, backgroundColor: colors.focus, overflow: "hidden" },
-        pressed && { opacity: 0.85 },
-      ]}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={[{ borderRadius: radii.block, backgroundColor: colors.focus, overflow: "hidden" }, animatedStyle]}
     >
       {/*<DitherEmblem category={credential.category}>*/}
       <View className="flex-1 justify-end p-5 h-36 bg-linear-to-r from-focus to-focus/90">
@@ -54,15 +62,8 @@ function CredentialCardBase({ credential, accessibilityLabel, onPress }: Credent
         </View>
       </View>
       {/*</DitherEmblem>*/}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
 export const CredentialCard = memo(CredentialCardBase);
-
-// Translucent chip over the dithered field, the same glass as the next-reminder card.
-const chipStyle = {
-  backgroundColor: "rgba(239, 235, 226, 0.1)",
-  borderWidth: StyleSheet.hairlineWidth,
-  borderColor: "rgba(239, 235, 226, 0.25)",
-};

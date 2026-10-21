@@ -5,8 +5,9 @@
 @import "nativewind/theme";
 
 /*
- * Mi design tokens (see CONTEXTO.md).
- * Palette: matte grey background, cool off-white canvas, pure black focus blocks.
+ * Design tokens. These are the defaults (Niebla) that generate the classes. The active theme overrides
+ * the values at runtime through VariableContextProvider, so every --color-* here must also be listed in
+ * metro.config.js (inlineVariables.exclude) and in src/constants/themes.ts.
  * Accents are used sparingly.
  */
 @theme {
@@ -17,8 +18,12 @@
   --color-ink-faint: #c9c5bc;
   --color-focus: #0a0a0a;
   --color-focus-text: #f2efe8;
-  --color-amber: #f2a33a;
+  --color-accent: #f2a33a;
+  --color-on-accent: #f2efe8;
+  --color-highlight: #f2a33a;
+  --color-on-highlight: #0a0a0a;
   --color-coral: #f26b5b;
+  --color-chip: #e2ddd3;
 
   --font-display: "Outfit_700Bold";
   --font-title: "Outfit_600SemiBold";

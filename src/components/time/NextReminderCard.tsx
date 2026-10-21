@@ -1,30 +1,25 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { withAlpha } from '@/constants/themes';
 import type { Reminder } from '@/types/reminders';
 import { formatShortDay, formatTime } from '@/utils/dates';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type NextReminderCardProps = {
   reminder: Reminder | null;
 };
 
-// Translucent card for the dark top panel: a faint canvas tint with a hairline edge.
-const glassStyle = {
-  backgroundColor: 'rgba(239, 235, 226, 0.1)',
-  //borderWidth: StyleSheet.hairlineWidth,
-  borderColor: 'rgba(239, 235, 226, 0.25)',
-};
-
-const glassStyleExisting = {
-  backgroundColor: 'rgba(239, 235, 226, 0.2)',
-  borderColor: 'rgba(239, 235, 226, 0.25)'
-}
-
 // The reminder closest in time, shown first. Without upcoming reminders it shows an empty state.
+// Translucent card for the dark top panel: a faint tint of the focus text, no hairline edge.
 export function NextReminderCard({ reminder }: NextReminderCardProps) {
+  const { colors } = useTheme();
+
   if (!reminder) {
     return (
-      <View className="flex-1 justify-center rounded-block p-5" style={[glassStyle, { minHeight: 96 }]}>
+      <View
+        className="flex-1 justify-center rounded-block p-5"
+        style={{ backgroundColor: withAlpha(colors.focusText, 0.1), minHeight: 96 }}
+      >
         <Text className="font-regular text-lg text-focus-text" style={{ opacity: 0.6 }}>
           Sin recordatorios próximos
         </Text>
@@ -35,7 +30,10 @@ export function NextReminderCard({ reminder }: NextReminderCardProps) {
   const remindAt = new Date(reminder.remindAt);
 
   return (
-    <View className="flex-1 justify-between rounded-block p-5" style={[glassStyleExisting, { minHeight: 96 }]}>
+    <View
+      className="flex-1 justify-between rounded-block p-5"
+      style={{ backgroundColor: withAlpha(colors.focusText, 0.2), minHeight: 96 }}
+    >
       <Text className="font-medium text-xs uppercase text-focus-text" style={{ opacity: 0.6 }}>
         Próximo
       </Text>

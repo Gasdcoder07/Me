@@ -1,10 +1,12 @@
 import { type ReactNode, type RefObject, useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { duration, easing, timing } from '@/constants/motion';
 import { radii } from '@/constants/theme';
+import { SCRIM, withAlpha } from '@/constants/themes';
 import { useKeyboardHeight } from '@/hooks/useKeyboard';
 
 type FormSheetProps = {
@@ -17,7 +19,6 @@ type FormSheetProps = {
   footer: ReactNode;
 };
 
-const SHEET_ANIMATION = { duration: 280, easing: Easing.out(Easing.cubic) };
 // Space between the top of the sheet and the top of the screen.
 const SHEET_TOP_GAP = 16;
 // Space between the footer and the keyboard when it is open.
@@ -41,9 +42,9 @@ export function FormSheet({ visible, onClose, scrollRef, children, footer }: For
 
   useEffect(() => {
     if (visible) {
-      progress.value = withTiming(1, SHEET_ANIMATION);
+      progress.value = withTiming(1, timing(duration.base, easing.out));
     } else {
-      progress.value = withTiming(0, SHEET_ANIMATION, (finished) => {
+      progress.value = withTiming(0, timing(duration.base, easing.out), (finished) => {
         if (finished) scheduleOnRN(setIsRendered, false);
       });
     }
@@ -63,7 +64,7 @@ export function FormSheet({ visible, onClose, scrollRef, children, footer }: For
   return (
     <Modal visible={isRendered} transparent animationType="none" onRequestClose={onClose}>
       <View className="flex-1 justify-end">
-        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10, 10, 10, 0.35)' }, backdropStyle]}>
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(SCRIM, 0.35) }, backdropStyle]}>
           <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" onPress={onClose} />
         </Animated.View>
 

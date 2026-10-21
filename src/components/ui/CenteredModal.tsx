@@ -1,25 +1,34 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { CircleButton } from '@/components/ui/CircleButton';
-import { colors, liftShadow, radii } from '@/constants/theme';
+import { duration, easing, timing } from '@/constants/motion';
+import { liftShadow, radii } from '@/constants/theme';
+import { SCRIM, withAlpha } from '@/constants/themes';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type CenteredModalProps = {
   onClose: () => void;
+  // The parent sets this to close the modal itself, with the same animation as the close button.
+  dismissed?: boolean;
+  // Extra circle buttons beside the close button, at the bottom of the panel.
+  actions?: ReactNode;
   children: ReactNode;
 };
 
-const ANIMATION = { duration: 240, easing: Easing.out(Easing.cubic) };
+const ANIMATION = timing(duration.base, easing.out);
 
 // Floating panel centred on the screen. It mounts open and fades/scales in. Closing runs the reverse
 // animation first and only then calls onClose, so the parent unmounts it and any secret it held.
-export function CenteredModal({ onClose, children }: CenteredModalProps) {
+export function CenteredModal({ onClose, dismissed = false, actions, children }: CenteredModalProps) {
+  const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   // 0 = closed, 1 = fully open.
   const progress = useSharedValue(0);
-  const [isClosing, setIsClosing] = useState(false);
+  const [isClosedByUser, setIsClosedByUser] = useState(false);
+  const isClosing = isClosedByUser || dismissed;
   // Parents pass an inline onClose, which changes on every render. Reading it from a ref keeps a re-render
   // during the close animation from restarting that animation.
   const onCloseRef = useRef(onClose);
@@ -39,7 +48,7 @@ export function CenteredModal({ onClose, children }: CenteredModalProps) {
     }
   }, [isClosing, progress]);
 
-  const close = () => setIsClosing(true);
+  const close = () => setIsClosedByUser(true);
 
   const backdropStyle = useAnimatedStyle(() => ({ opacity: progress.value }));
   const panelStyle = useAnimatedStyle(() => ({
@@ -51,7 +60,7 @@ export function CenteredModal({ onClose, children }: CenteredModalProps) {
     <Modal transparent animationType="none" statusBarTranslucent onRequestClose={close}>
       <View className="flex-1 items-center justify-center px-6">
         <Animated.View
-          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10, 10, 10, 0.45)' }, backdropStyle]}
+          style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(SCRIM, 0.45) }, backdropStyle]}
         >
           <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Cerrar" onPress={close} />
         </Animated.View>
@@ -69,7 +78,8 @@ export function CenteredModal({ onClose, children }: CenteredModalProps) {
           >
             {children}
 
-            <View className="items-center pt-2">
+            <View className="flex-row items-center justify-center gap-4 pt-2">
+              {actions}
               <CircleButton icon="close" label="Cerrar" variant="solid" size={56} onPress={close} />
             </View>
           </ScrollView>

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { LavaCanvas } from '@/components/ui/LavaBackground';
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 
 const CIRCLE_SIZE = 200;
 const TURN_DURATION_MS = 7000;
@@ -23,6 +23,7 @@ type SplashScreenProps = {
 // Shown while the app starts: the black lava circle turns slowly until loading finishes.
 // Fills its parent so it can stand in for the whole screen, both while fonts load and while the database opens.
 export function SplashScreen({ showTitle = true }: SplashScreenProps) {
+  const { colors } = useTheme();
   const rotation = useSharedValue(0);
 
   useEffect(() => {

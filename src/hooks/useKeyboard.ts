@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Keyboard, Platform, ScrollView, type KeyboardEvent, type LayoutChangeEvent } from 'react-native';
-import { Easing, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
+import { useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 
-const FALLBACK_DURATION_MS = 250;
+import { duration as motionDuration, easing } from '@/constants/motion';
+
 const FIELD_MARGIN = 16;
 
 // Keyboard height in points, animated along the system keyboard curve. Sheets read it as bottom padding,
@@ -13,10 +14,11 @@ export function useKeyboardHeight(): SharedValue<number> {
   useEffect(() => {
     if (Platform.OS !== 'ios') return;
 
-    const animateTo = (target: number, duration?: number) => {
+    // The system duration is used when the event carries one, so the sheet moves on the keyboard's own curve.
+    const animateTo = (target: number, keyboardDuration?: number) => {
       height.value = withTiming(target, {
-        duration: duration || FALLBACK_DURATION_MS,
-        easing: Easing.out(Easing.cubic),
+        duration: keyboardDuration || motionDuration.base,
+        easing: easing.out,
       });
     };
 

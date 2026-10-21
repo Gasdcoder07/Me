@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { Icon } from '@/components/icons/Icon';
 import { ItemCard } from '@/components/ui/ItemCard';
 import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 import type { Reminder } from '@/types/reminders';
 import { formatTime, weekdayShort } from '@/utils/dates';
 
@@ -44,6 +44,7 @@ type ReminderRowProps = {
 
 // Memoized: with `now` ticking every minute, a row only re-renders when its own "passed" state flips.
 const ReminderRow = memo(function ReminderRow({ reminder, hasPassed, isLast, onOpen, onDelete }: ReminderRowProps) {
+  const { colors } = useTheme();
   const remindAt = new Date(reminder.remindAt);
 
   return (

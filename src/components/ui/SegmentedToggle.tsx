@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View, type LayoutChangeEvent } from 'react-native';
 import Animated, {
-  Easing,
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
@@ -9,7 +8,8 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { colors } from '@/constants/theme';
+import { duration, easing, timing } from '@/constants/motion';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type ToggleOption<T extends string> = {
   value: T;
@@ -22,11 +22,10 @@ type SegmentedToggleProps<T extends string> = {
   onChange: (value: T) => void;
 };
 
-const MOTION = { duration: 320, easing: Easing.inOut(Easing.ease) };
-
 // Elongated container. The active option is a solid block that slides between slots;
 // labels cross-fade from muted to light as the block passes under them.
 export function SegmentedToggle<T extends string>({ options, value, onChange }: SegmentedToggleProps<T>) {
+  const { colors } = useTheme();
   const [trackWidth, setTrackWidth] = useState(0);
   const activeIndex = Math.max(0, options.findIndex((option) => option.value === value));
   const slotWidth = trackWidth / options.length;
@@ -35,7 +34,7 @@ export function SegmentedToggle<T extends string>({ options, value, onChange }: 
   const position = useSharedValue(activeIndex);
 
   useEffect(() => {
-    position.value = withTiming(activeIndex, MOTION);
+    position.value = withTiming(activeIndex, timing(duration.medium, easing.inOut));
   }, [activeIndex, position]);
 
   const blockStyle = useAnimatedStyle(
@@ -60,7 +59,7 @@ export function SegmentedToggle<T extends string>({ options, value, onChange }: 
               left: 0,
               width: slotWidth,
               borderRadius: 999,
-              backgroundColor: colors.focus,
+              backgroundColor: colors.accent,
             },
             blockStyle,
           ]}
@@ -94,13 +93,14 @@ type ToggleLabelProps = {
 
 // Typography mirrors `font-medium text-sm`; color is driven by the shared position.
 function ToggleLabel({ label, index, position }: ToggleLabelProps) {
+  const { colors } = useTheme();
   const textStyle = useAnimatedStyle(() => {
     const proximity = 1 - Math.min(1, Math.abs(position.value - index));
 
     return {
-      color: interpolateColor(proximity, [0, 1], [colors.inkMuted, colors.focusText]),
+      color: interpolateColor(proximity, [0, 1], [colors.inkMuted, colors.onAccent]),
     };
-  });
+  }, [colors.inkMuted, colors.onAccent]);
 
   return (
     <Animated.Text

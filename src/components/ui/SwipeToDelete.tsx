@@ -4,7 +4,8 @@ import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reani
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { Icon } from '@/components/icons/Icon';
-import { colors, radii } from '@/constants/theme';
+import { radii } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 
 const ACTION_WIDTH = 88;
 
@@ -52,6 +53,7 @@ type DeleteActionProps = {
 
 // Starts off the right edge and lands flush with it once the row is fully swiped open.
 function DeleteAction({ translation, accessibilityLabel, onPress }: DeleteActionProps) {
+  const { colors } = useTheme();
   const slideStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translation.value + ACTION_WIDTH }],
   }));
@@ -73,7 +75,7 @@ function DeleteAction({ translation, accessibilityLabel, onPress }: DeleteAction
         }}
       >
         <Icon name="trash" size={22} color={colors.ink} />
-        <Text className="font-medium text-xs text-focus-text" style={{ color: colors.inkFaint }}>Borrar</Text>
+        <Text className="font-medium text-xs text-focus-text" style={{ color: colors.inkMuted }}>Borrar</Text>
       </Pressable>
     </Animated.View>
   );

@@ -16,13 +16,12 @@ import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { LavaCanvas } from "@/components/ui/LavaBackground";
 import { LineField } from "@/components/ui/LineField";
 import { Screen } from "@/components/ui/Screen";
-import { colors } from "@/constants/theme";
+import { withAlpha } from "@/constants/themes";
+import { useTheme } from "@/theme/ThemeProvider";
 import { useFieldScroll, useKeyboardHeight } from "@/hooks/useKeyboard";
 
 const NAME_MAX_LENGTH = 40;
 const HERO_HEIGHT = 280;
-// The canvas veil starts at 70% over the top of the band (dark at about 30%) and eases to full canvas at the bottom.
-const veilColors = ["rgba(255, 255, 255, 0)", colors.canvas] as const;
 
 type WelcomeScreenProps = {
   // Null on the first launch: the screen asks for the name. Otherwise the stored name is shown.
@@ -32,6 +31,9 @@ type WelcomeScreenProps = {
 
 // Greeting after the splash. The owner's name is the only thing stored; there is no session behind it.
 export function WelcomeScreen({ savedName, onContinue }: WelcomeScreenProps) {
+  const { colors } = useTheme();
+  // The canvas veil starts at 70% over the top of the band (dark at about 30%) and eases to full canvas at the bottom.
+  const veilColors = [withAlpha(colors.canvas, 0), colors.canvas] as const;
   const [draft, setDraft] = useState("");
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardHeight();

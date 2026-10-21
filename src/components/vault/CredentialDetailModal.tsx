@@ -11,7 +11,6 @@ import {
   credentialUsernameLabel,
 } from "@/components/vault/credentialCategory";
 import { DitherEmblem } from "@/components/vault/DitherEmblem";
-import { colors } from "@/constants/theme";
 import type { Credential } from "@/types/vault";
 
 type CredentialDetailModalProps = {
@@ -20,7 +19,7 @@ type CredentialDetailModalProps = {
   onClose: () => void;
 };
 
-// Shown only after Face ID. The header block mirrors the card: the dithered emblem on top, then black with an amber accent and display title.
+// Shown only after Face ID. The header block mirrors the card: the dithered emblem on top, then black with the accent color and display title.
 export function CredentialDetailModal({ credential, secret, onClose }: CredentialDetailModalProps) {
   return (
     <CenteredModal onClose={onClose}>

@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { type IconName } from '@/components/icons/Icon';
 import { ItemCard } from '@/components/ui/ItemCard';
 import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/theme/ThemeProvider';
 import { BUILTIN_CATEGORY_IDS } from '@/data/documents';
 import { type DocumentCategory, type StoredDocument, isPdfDocument } from '@/types/documents';
 
@@ -59,6 +59,7 @@ const DocumentRow = memo(function DocumentRow({
   onOpen,
   onDelete,
 }: DocumentRowProps) {
+  const { colors } = useTheme();
   return (
     <View className="flex-row">
       <View className="w-5 items-center">

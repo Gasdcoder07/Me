@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 import { Icon } from '@/components/icons/Icon';
-import { colors } from '@/constants/theme';
 import { useOwnerName } from '@/hooks/useOwnerName';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type LockStatus = 'locked' | 'failed' | 'unlocked';
 
@@ -17,6 +17,7 @@ type AppLockProps = {
 // passcode fallback), so no vault data is read or rendered before unlock.
 // The vault locks again whenever the app goes to the background.
 export function AppLock({ children }: AppLockProps) {
+  const { colors } = useTheme();
   const ownerName = useOwnerName();
   const [status, setStatus] = useState<LockStatus>('locked');
   // Mirror of `status` for AppState listeners, which would otherwise see a stale value.
