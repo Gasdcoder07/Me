@@ -1,9 +1,10 @@
 import { StyleSheet, type ViewStyle } from 'react-native';
 
 // Two independent choices. Appearance (light or dark) applies to every color theme.
-// A color theme sets the accent colors, the focus blocks and the glow. The neutrals (canvas, text, chips) are the same in every theme.
+// A color theme sets the canvas, the text, the focus blocks, the accent and the glow, all taken from its FigCraft design.
+// The page background, chips, coral and the status bar are shared by every theme.
 export type Appearance = 'light' | 'dark';
-export type ColorThemeId = 'niebla' | 'esmeralda' | 'anil' | 'rosa' | 'ruby';
+export type ColorThemeId = 'niebla' | 'esmeralda' | 'anil' | 'rosa' | 'ruby' | 'morado';
 
 export type Palette = {
   background: string;
@@ -18,7 +19,7 @@ export type Palette = {
   accent: string;
   // Text and icons drawn on top of the accent.
   onAccent: string;
-  // Highlights: item badges and icons. Niebla's highlight is amber.
+  // Highlights: item badges and icons.
   highlight: string;
   // Text and icons drawn on top of the highlight.
   onHighlight: string;
@@ -34,17 +35,17 @@ export type Palette = {
   statusBarOnFocus: 'dark' | 'light';
 };
 
-type Neutrals = Omit<Palette, 'focus' | 'accent' | 'onAccent' | 'highlight' | 'onHighlight' | 'lava'>;
+type Accent = Pick<
+  Palette,
+  'canvas' | 'ink' | 'inkMuted' | 'inkFaint' | 'focus' | 'focusText' | 'accent' | 'onAccent' | 'highlight' | 'onHighlight' | 'lava'
+>;
 
-// Light is the original Niebla palette. Dark keeps the same roles: text is a soft off-white with a muted secondary tone.
+type Neutrals = Omit<Palette, keyof Accent>;
+
+// Shared by every color theme. Dark keeps the same roles: text is a soft off-white with a muted secondary tone.
 const neutrals: Record<Appearance, Neutrals> = {
   light: {
     background: '#808080',
-    canvas: '#e9eef3',
-    ink: '#0a0a0a',
-    inkMuted: '#8f8b84',
-    inkFaint: '#c9c5bc',
-    focusText: '#f2efe8',
     coral: '#f26b5b',
     chip: '#e2ddd3',
     appearance: 'light',
@@ -53,113 +54,184 @@ const neutrals: Record<Appearance, Neutrals> = {
   },
   dark: {
     background: '#06070a',
-    canvas: '#0c0d10',
-    ink: '#e4e6ea',
-    inkMuted: '#9aa1ab',
-    inkFaint: '#353b45',
-    focusText: '#eceef2',
-    coral: '#f47a6c',
-    chip: '#2b3038',
+    coral: '#d98a80',
+    chip: '#1e2025',
     appearance: 'dark',
     statusBar: 'light',
     statusBarOnFocus: 'light',
   },
 };
 
-type Accent = Pick<Palette, 'focus' | 'accent' | 'onAccent' | 'highlight' | 'onHighlight' | 'lava'>;
-
-// Each color theme in each appearance: its focus blocks, its glow and its accent roles. The accent is a mid tone
-// of the glow, so the primary surfaces stay sober. The highlights keep the brighter color: Niebla's is amber.
-// In light, the darkest glow tone is lifted above the focus block, so it never reads as a dark hole in the panel.
+// Each color theme in each appearance, from the FigCraft designs (left column light, right column dark).
+// canvas is the screen; focus is the large block; accent is the active tab; highlight is the badge.
+// lava is the glow, all tints of the highlight: never darker than it in the dark appearance. The light appearance mutes it 25% toward black, so the glow does not smudge the light UI.
 const accents: Record<ColorThemeId, Record<Appearance, Accent>> = {
   niebla: {
     light: {
-      focus: '#0a0a0a',
-      accent: '#44403c',
+      canvas: '#e8eef3',
+      ink: '#000000',
+      inkMuted: '#000000',
+      inkFaint: '#e3e3e3',
+      focus: '#000000',
+      focusText: '#ffffff',
+      accent: '#000000',
       onAccent: '#ffffff',
-      highlight: '#f59e0b',
-      onHighlight: '#000000',
-      lava: ['#1c1917', '#292524', '#272727', '#44403c'],
+      highlight: '#474747',
+      onHighlight: '#ffffff',
+      lava: ['#4d4d4d', '#3e3e3e', '#606060', '#606060'],
     },
     dark: {
-      focus: '#272c35',
-      accent: '#57534e',
+      canvas: '#000000',
+      ink: '#ffffff',
+      inkMuted: '#bababa',
+      inkFaint: '#101010',
+      focus: '#101010',
+      focusText: '#ffffff',
+      accent: '#101010',
       onAccent: '#ffffff',
-      highlight: '#fbbf24',
-      onHighlight: '#000000',
-      lava: ['#292524', '#44403c', '#1c1917', '#57534e'],
+      highlight: '#474747',
+      onHighlight: '#ffffff',
+      lava: ['#666666', '#535353', '#808080', '#808080'],
     },
   },
   esmeralda: {
     light: {
-      focus: '#064e3b',
-      accent: '#059669',
-      onAccent: '#000000',
-      highlight: '#10b981',
-      onHighlight: '#022c22',
-      lava: ['#064e3b', '#047857', '#246353', '#059669'],
+      canvas: '#e8eef3',
+      ink: '#000000',
+      inkMuted: '#000000',
+      inkFaint: '#e3e3e3',
+      focus: '#295654',
+      focusText: '#ffffff',
+      accent: '#295654',
+      onAccent: '#ffffff',
+      highlight: '#6eb5b3',
+      onHighlight: '#ffffff',
+      lava: ['#659190', '#598c8a', '#749998', '#749998'],
     },
     dark: {
-      focus: '#065f46',
-      accent: '#059669',
-      onAccent: '#000000',
-      highlight: '#34d399',
-      onHighlight: '#022c22',
-      lava: ['#065f46', '#059669', '#064e3b', '#10b981'],
+      canvas: '#041e1d',
+      ink: '#ffffff',
+      inkMuted: '#bababa',
+      inkFaint: '#295654',
+      focus: '#295654',
+      focusText: '#ffffff',
+      accent: '#295654',
+      onAccent: '#ffffff',
+      highlight: '#6eb5b3',
+      onHighlight: '#ffffff',
+      lava: ['#87c1c0', '#77bab8', '#9bcccb', '#9bcccb'],
     },
   },
   anil: {
     light: {
-      focus: '#1e3a8a',
-      accent: '#312e81',
+      canvas: '#e8eef3',
+      ink: '#000000',
+      inkMuted: '#000000',
+      inkFaint: '#e3e3e3',
+      focus: '#18398a',
+      focusText: '#ffffff',
+      accent: '#18398a',
       onAccent: '#ffffff',
-      highlight: '#6366f1',
+      highlight: '#5d7abf',
       onHighlight: '#ffffff',
-      lava: ['#172554', '#1e3a8a', '#395298', '#312e81'],
+      lava: ['#5a6d98', '#4d6292', '#6b7a9e', '#6b7a9e'],
     },
     dark: {
-      focus: '#1e40af',
-      accent: '#3730a3',
+      canvas: '#101420',
+      ink: '#ffffff',
+      inkMuted: '#9a9a9a',
+      inkFaint: '#1b2950',
+      focus: '#1b2950',
+      focusText: '#ffffff',
+      accent: '#18398a',
       onAccent: '#ffffff',
-      highlight: '#818cf8',
-      onHighlight: '#0b1120',
-      lava: ['#1e3a8a', '#1e40af', '#172554', '#3730a3'],
+      highlight: '#4a5988',
+      onHighlight: '#ffffff',
+      lava: ['#68759c', '#556490', '#828cad', '#828cad'],
     },
   },
   rosa: {
     light: {
-      focus: '#881337',
-      accent: '#9f1239',
+      canvas: '#e8eef3',
+      ink: '#6b6b6b',
+      inkMuted: '#6b6b6b',
+      inkFaint: '#e3e3e3',
+      focus: '#ff92c7',
+      focusText: '#ffffff',
+      accent: '#ff92c7',
       onAccent: '#ffffff',
-      highlight: '#f43f5e',
+      highlight: '#ebd3df',
       onHighlight: '#ffffff',
-      lava: ['#4c0519', '#881337', '#962f4f', '#9f1239'],
+      lava: ['#b3a4ac', '#b1a1a9', '#b5a8af', '#b5a8af'],
     },
     dark: {
-      focus: '#9f1239',
-      accent: '#be123c',
+      canvas: '#380a20',
+      ink: '#000000',
+      inkMuted: '#ebd3df',
+      inkFaint: '#631a3d',
+      focus: '#631a3d',
+      focusText: '#ffffff',
+      accent: '#631a3d',
       onAccent: '#ffffff',
-      highlight: '#fb7185',
-      onHighlight: '#2a0f18',
-      lava: ['#881337', '#9f1239', '#4c0519', '#be123c'],
+      highlight: '#c7769e',
+      onHighlight: '#ffffff',
+      lava: ['#d08daf', '#cb7fa4', '#d9a0bc', '#d9a0bc'],
     },
   },
   ruby: {
     light: {
-      focus: '#7f1d1d',
-      accent: '#991b1b',
+      canvas: '#e8eef3',
+      ink: '#000000',
+      inkMuted: '#000000',
+      inkFaint: '#e3e3e3',
+      focus: '#9e2626',
+      focusText: '#ffffff',
+      accent: '#9e2626',
       onAccent: '#ffffff',
-      highlight: '#e11d48',
+      highlight: '#e79494',
       onHighlight: '#ffffff',
-      lava: ['#450a0a', '#7f1d1d', '#8e3838', '#991b1b'],
+      lava: ['#b07d7d', '#af7474', '#b38888', '#b38888'],
     },
     dark: {
-      focus: '#991b1b',
-      accent: '#b91c1c',
+      canvas: '#270303',
+      ink: '#ffffff',
+      inkMuted: '#ebd3df',
+      inkFaint: '#500d0d',
+      focus: '#500d0d',
+      focusText: '#ffffff',
+      accent: '#500d0d',
       onAccent: '#ffffff',
-      highlight: '#f43f5e',
-      onHighlight: '#1a0508',
-      lava: ['#7f1d1d', '#991b1b', '#450a0a', '#b91c1c'],
+      highlight: '#9e2626',
+      onHighlight: '#ffffff',
+      lava: ['#af4b4b', '#a43434', '#bc6969', '#bc6969'],
+    },
+  },
+  morado: {
+    light: {
+      canvas: '#e8eef3',
+      ink: '#000000',
+      inkMuted: '#000000',
+      inkFaint: '#e3e3e3',
+      focus: '#4b146e',
+      focusText: '#ffffff',
+      accent: '#4b146e',
+      onAccent: '#ffffff',
+      highlight: '#8141aa',
+      onHighlight: '#ffffff',
+      lava: ['#714a8b', '#673a83', '#7e5d93', '#7e5d93'],
+    },
+    dark: {
+      canvas: '#1a0527',
+      ink: '#000000',
+      inkMuted: '#ebd3df',
+      inkFaint: '#341548',
+      focus: '#341548',
+      focusText: '#ffffff',
+      accent: '#4b146e',
+      onAccent: '#ffffff',
+      highlight: '#653c80',
+      onHighlight: '#ffffff',
+      lava: ['#7f5d95', '#6f4888', '#9578a7', '#9578a7'],
     },
   },
 };

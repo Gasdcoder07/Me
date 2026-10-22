@@ -15,11 +15,12 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 // Name and one-line mood for each color theme, in the order they are offered.
 const colorThemeInfo: Record<ColorThemeId, { name: string; mood: string }> = {
-  niebla: { name: 'Niebla', mood: 'Original, acento ámbar' },
-  esmeralda: { name: 'Esmeralda', mood: 'Acento verde esmeralda' },
+  niebla: { name: 'Niebla', mood: 'Original, acento negro grafito' },
+  esmeralda: { name: 'Esmeralda', mood: 'Acento verde azulado' },
   anil: { name: 'Añil', mood: 'Acento azul añil' },
   rosa: { name: 'Rosa', mood: 'Acento rosa pastel' },
   ruby: { name: 'Ruby', mood: 'Acento rojo ruby' },
+  morado: { name: 'Morado', mood: 'Acento morado' },
 };
 
 const appearanceOptions: { value: Appearance; label: string }[] = [

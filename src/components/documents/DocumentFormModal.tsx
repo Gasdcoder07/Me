@@ -122,9 +122,10 @@ export function DocumentFormModal({ visible, categories, onClose, onChanged }: D
           accessibilityState={{ disabled: !isValid || isSaving }}
           disabled={!isValid || isSaving}
           onPress={handleSave}
-          className={`items-center rounded-full py-4 ${isValid ? 'bg-focus' : 'bg-ink-faint'}`}
+          className="items-center rounded-full py-4 bg-accent"
+          style={{ opacity: isValid ? 1 : 0.35 }}
         >
-          <Text className={`font-title text-base ${isValid ? 'text-focus-text' : 'text-ink-muted'}`}>
+          <Text className="font-title text-base text-on-accent">
             {isSaving ? 'Guardando…' : 'Guardar'}
           </Text>
         </Pressable>
@@ -210,10 +211,10 @@ export function DocumentFormModal({ visible, categories, onClose, onChanged }: D
               accessibilityState={{ disabled: newCategoryName.trim() === '' }}
               disabled={newCategoryName.trim() === ''}
               onPress={handleCreateCategory}
-              className="mb-1 rounded-full bg-focus px-5 py-3"
+              className="mb-1 rounded-full bg-accent px-5 py-3"
               style={{ opacity: newCategoryName.trim() === '' ? 0.4 : 1 }}
             >
-              <Text className="font-title text-sm text-focus-text">Crear</Text>
+              <Text className="font-title text-sm text-on-accent">Crear</Text>
             </Pressable>
           </View>
         )}

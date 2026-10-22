@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icons/Icon";
@@ -11,6 +12,9 @@ import {
   credentialUsernameLabel,
 } from "@/components/vault/credentialCategory";
 import { DitherEmblem } from "@/components/vault/DitherEmblem";
+import { radii } from "@/constants/theme";
+import { withAlpha } from "@/constants/themes";
+import { useTheme } from "@/theme/ThemeProvider";
 import type { Credential } from "@/types/vault";
 
 type CredentialDetailModalProps = {
@@ -21,11 +25,16 @@ type CredentialDetailModalProps = {
 
 // Shown only after Face ID. The header block mirrors the card: the dithered emblem on top, then black with the accent color and display title.
 export function CredentialDetailModal({ credential, secret, onClose }: CredentialDetailModalProps) {
+  const { colors } = useTheme();
+
   return (
     <CenteredModal onClose={onClose}>
-      <View
-        className="rounded-block bg-linear-to-tl from-focus to-focus/80"
-        style={{ overflow: "hidden" }}
+      {/* Gradient colors come from the theme as raw values: NativeWind's /opacity on a gradient stop resolves to white. */}
+      <LinearGradient
+        colors={[withAlpha(colors.focus, 0.9), colors.focus]}
+        start={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 0 }}
+        style={{ borderRadius: radii.block, overflow: "hidden" }}
       >
         <View className="gap-8 p-6">
           <View className="flex-row items-center justify-between">
@@ -48,7 +57,7 @@ export function CredentialDetailModal({ credential, secret, onClose }: Credentia
             </Text>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       {credential.category !== "identity" && (
         <>

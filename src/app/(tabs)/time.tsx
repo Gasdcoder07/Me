@@ -11,6 +11,7 @@ import { ReminderDetailModal } from "@/components/time/ReminderDetailModal";
 import { ReminderFormModal } from "@/components/time/ReminderFormModal";
 import { ReminderList } from "@/components/time/ReminderList";
 import { CircleButton } from "@/components/ui/CircleButton";
+import { MeshBackground } from "@/components/ui/MeshBackground";
 import { DarkPanel } from "@/components/ui/DarkPanel";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -110,6 +111,7 @@ export default function TimeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+      <MeshBackground />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{

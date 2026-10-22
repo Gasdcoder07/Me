@@ -88,7 +88,6 @@ export default function FilesScreen() {
             ) : (
               <DocumentList
                 documents={visibleDocuments}
-                categories={categories}
                 onOpen={setOpenedDocument}
                 onDelete={handleDelete}
               />

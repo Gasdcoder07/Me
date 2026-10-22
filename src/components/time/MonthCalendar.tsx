@@ -107,7 +107,7 @@ export function MonthGrid({
   const weeks = useMemo(() => getMonthWeeks(month), [month]);
 
   return (
-    <View className="bg-canvas">
+    <View>
       {weeks.map((week, weekIndex) => (
         <View key={weekIndex} className="flex-row">
           {week.map((date, dayIndex) => {

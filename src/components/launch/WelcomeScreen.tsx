@@ -55,7 +55,7 @@ export function WelcomeScreen({ savedName, onContinue }: WelcomeScreenProps) {
   );
 
   return (
-    <Screen>
+    <Screen mesh={false}>
       {/* Soft lava band across the top: the glow is blurred, then a canvas veil lightens it from the top down
           so it reaches the canvas without a hard edge. The band starts at the very top edge: the negative
           margin cancels the safe-area inset the screen adds. */}

@@ -15,7 +15,8 @@ export type IconName =
   | 'close'
   | 'copy'
   | 'check'
-  | 'palette';
+  | 'palette'
+  | 'download';
 
 // Thin line icons on a 24-unit grid, drawn with simple geometric primitives.
 const shapes: Record<IconName, ReactNode> = {
@@ -92,6 +93,13 @@ const shapes: Record<IconName, ReactNode> = {
     </>
   ),
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
+  download: (
+    <>
+      <Path d="M12 4v11" />
+      <Path d="M7 10.5l5 5 5-5" />
+      <Path d="M5 20h14" />
+    </>
+  ),
   palette: (
     <>
       <Path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z" />

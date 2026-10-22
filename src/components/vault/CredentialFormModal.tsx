@@ -109,9 +109,10 @@ export function CredentialFormModal({ visible, onClose, onSaved }: CredentialFor
           accessibilityState={{ disabled: !isValid || isSaving }}
           disabled={!isValid || isSaving}
           onPress={handleSave}
-          className={`items-center rounded-full py-4 ${isValid ? 'bg-focus' : 'bg-ink-faint'}`}
+          className="items-center rounded-full py-4 bg-accent"
+          style={{ opacity: isValid ? 1 : 0.35 }}
         >
-          <Text className={`font-title text-base ${isValid ? 'text-focus-text' : 'text-ink-muted'}`}>
+          <Text className="font-title text-base text-on-accent">
             {isSaving ? 'Guardando…' : 'Guardar'}
           </Text>
         </Pressable>

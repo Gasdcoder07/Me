@@ -1,5 +1,6 @@
 import { Text, TextInput, type TextInputProps, View } from 'react-native';
 
+import { withAlpha } from '@/constants/themes';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type LineFieldProps = TextInputProps & {
@@ -13,7 +14,7 @@ export function LineField({ label, ...inputProps }: LineFieldProps) {
     <View className="gap-2">
       <Text className="font-medium text-xs uppercase text-ink-muted">{label}</Text>
       <TextInput
-        placeholderTextColor={colors.inkMuted}
+        placeholderTextColor={withAlpha(colors.ink, 0.4)}
         keyboardAppearance={appearance}
         className="border-b border-ink-faint pb-2 font-title text-2xl text-ink"
         {...inputProps}

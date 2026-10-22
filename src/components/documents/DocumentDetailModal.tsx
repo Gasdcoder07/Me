@@ -1,7 +1,9 @@
-import { Image, Text, View } from 'react-native';
+import { Alert, Image, Text, View } from 'react-native';
+import type * as ExpoSharing from 'expo-sharing';
 import type WebViewComponent from 'react-native-webview';
 
 import { CenteredModal } from '@/components/ui/CenteredModal';
+import { CircleButton } from '@/components/ui/CircleButton';
 import { DetailField } from '@/components/ui/DetailField';
 import { Tag } from '@/components/ui/Tag';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -10,8 +12,8 @@ import type { StoredDocument } from '@/types/documents';
 import { isPdfDocument } from '@/types/documents';
 import { formatLongDay } from '@/utils/dates';
 
-// Height of the cover viewer. Tall enough to read a page header, short enough to keep the panel on screen.
-const VIEWER_HEIGHT = 360;
+// Side of the square cover viewer. The whole picture fits inside it, and the modal never stretches it.
+const PREVIEW_SIZE = 240;
 
 type DocumentDetailModalProps = {
   document: StoredDocument;
@@ -23,11 +25,33 @@ type DocumentDetailModalProps = {
 export function DocumentDetailModal({ document, categoryName, onClose }: DocumentDetailModalProps) {
   const { colors } = useTheme();
   const isPdf = isPdfDocument(document);
+  const uri = documentFileUri(document.fileName);
+
+  // Opens the system share sheet, where the file can be saved to the Files app.
+  const handleDownload = async () => {
+    if (!sharing) {
+      Alert.alert('Descarga no disponible', 'Reconstruye la app una vez para activar la descarga.');
+      return;
+    }
+
+    try {
+      await sharing.shareAsync(uri, {
+        mimeType: document.mimeType ?? undefined,
+        UTI: isPdf ? 'com.adobe.pdf' : 'public.image',
+        dialogTitle: document.name,
+      });
+    } catch {
+      Alert.alert('No se pudo descargar', 'Inténtalo de nuevo.');
+    }
+  };
 
   return (
     <CenteredModal onClose={onClose}>
-      <View className="overflow-hidden rounded-block" style={{ height: VIEWER_HEIGHT, backgroundColor: colors.chip }}>
-        <CoverViewer uri={documentFileUri(document.fileName)} isPdf={isPdf} name={document.name} />
+      <View
+        className="overflow-hidden rounded-block"
+        style={{ width: PREVIEW_SIZE, height: PREVIEW_SIZE, alignSelf: "center", backgroundColor: colors.chip }}
+      >
+        <CoverViewer uri={uri} isPdf={isPdf} name={document.name} />
       </View>
 
       {/* pt-2 + line height >= 1.2x font size: keeps the top of the glyphs inside the line box. */}
@@ -40,9 +64,12 @@ export function DocumentDetailModal({ document, categoryName, onClose }: Documen
           {document.name}
         </Text>
 
-        <View className="flex-row flex-wrap gap-2">
-          <Tag label={categoryName} />
-          <Tag label={isPdf ? 'PDF' : 'Imagen'} />
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-1 flex-row flex-wrap gap-2">
+            <Tag label={categoryName} />
+            <Tag label={isPdf ? 'PDF' : 'Imagen'} />
+          </View>
+          <CircleButton icon="download" label="Descargar documento" variant="solid" size={48} onPress={handleDownload} />
         </View>
       </View>
 
@@ -56,6 +83,19 @@ type CoverViewerProps = {
   isPdf: boolean;
   name: string;
 };
+
+// expo-sharing is a native module too. Builds made before it was added do not contain it, and importing it throws,
+// so it is loaded the same way as WebView: a missing module leaves sharing null and the download button explains why.
+const sharing = loadSharing();
+
+function loadSharing(): typeof ExpoSharing | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-sharing') as typeof ExpoSharing;
+  } catch {
+    return null;
+  }
+}
 
 // react-native-webview needs a native module that older builds do not contain, and importing it throws.
 // It is loaded inside try/catch at module scope: a missing module leaves WebView null, and the PDF

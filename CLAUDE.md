@@ -31,8 +31,8 @@ UI copy is Spanish. Code, comments and docs are English.
 ## 3. Themes
 
 - Two independent choices. Appearance (`light` or `dark`) applies to every color theme. The color theme
-  (`niebla`, `esmeralda`, `anil`, `rosa`, `ruby`) only changes the accent. Niebla is the original palette.
-  Its accent is amber.
+  (`niebla`, `esmeralda`, `anil`, `rosa`, `ruby`, `morado`) sets the canvas, text, focus blocks, accent and highlight,
+  taken as they are from the FigCraft designs (light and dark). These six are the only color themes.
 - Never hard-code a color. Use the className tokens (`bg-canvas`, `text-ink`, `text-ink-muted`, `bg-focus`,
   `text-focus-text`, `border-ink-faint`, `bg-chip`, `bg-accent`, `text-on-accent`, `text-coral`).
   When a prop needs a raw value (SVG strokes, gradients, placeholder color, animated color), use
@@ -42,7 +42,7 @@ UI copy is Spanish. Code, comments and docs are English.
   in dark mode the focus block is a raised charcoal, so the text would vanish on the canvas.
 - Two accent roles. `accent` (`bg-accent`, `text-on-accent`) colors the primary surfaces: the active tab,
   solid buttons and the selected toggle option. `highlight` (`bg-highlight`, `text-on-highlight`) colors item
-  badges and icons. Niebla's highlight is amber; its accent is the neutral focus, so light Niebla is unchanged.
+  badges and icons. In each theme the accent is the design's main color and the highlight is its badge color.
   Never put a fixed text color on either role.
 - Derive translucent colors from tokens: `withAlpha(colors.focusText, 0.1)`, `glassOnFocus(colors)`,
   and `SCRIM` for the dim layer behind modals. Do not write `rgba(...)` literals.

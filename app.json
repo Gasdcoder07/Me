@@ -53,7 +53,8 @@
             "./assets/sounds/alarm.wav"
           ]
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

@@ -235,9 +235,10 @@ function CategoryMenu({
                   accessibilityState={{ disabled: !isNameValid || isSaving }}
                   disabled={!isNameValid || isSaving}
                   onPress={handleCreate}
-                  className={`rounded-full px-6 py-3 ${isNameValid ? 'bg-focus' : 'bg-ink-faint'}`}
+                  className="rounded-full px-6 py-3 bg-accent"
+                  style={{ opacity: isNameValid ? 1 : 0.35 }}
                 >
-                  <Text className={`font-title text-sm ${isNameValid ? 'text-focus-text' : 'text-ink-muted'}`}>
+                  <Text className="font-title text-sm text-on-accent">
                     {isSaving ? 'Guardando…' : 'Guardar'}
                   </Text>
                 </Pressable>
