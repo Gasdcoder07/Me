@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Mi - liquid M with coral tittle (niebla)">
+  <title>Mi - liquid M with coral tittle (niebla)</title>
+  <defs>
+    <radialGradient id="w0" cx="20%" cy="15%" r="60%">
+      <stop offset="0" stop-color="#474747" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#474747" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w1" cx="85%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#474747" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#474747" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" cx="25%" cy="80%" r="60%">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w3" cx="80%" cy="95%" r="50%">
+      <stop offset="0" stop-color="#474747" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#474747" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="#000000"/>
+  <rect width="1024" height="1024" fill="url(#w0)"/>
+  <rect width="1024" height="1024" fill="url(#w1)"/>
+  <rect width="1024" height="1024" fill="url(#w2)"/>
+  <rect width="1024" height="1024" fill="url(#w3)"/>
+  <path d="M250 648 V 428 C 250 384 306 372 334 410 L 450 566 L 566 410 C 594 372 650 384 650 428 V 648" fill="none" stroke="#ffffff" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="762" cy="378" r="62" fill="#f26b5b"/>
+</svg>

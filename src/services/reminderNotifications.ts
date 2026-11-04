@@ -53,7 +53,8 @@ async function armReminder(reminder: Reminder): Promise<void> {
   if (reminder.remindAt > now) {
     await Notifications.scheduleNotificationAsync({
       identifier: dueId(reminder.id),
-      content: { title: reminder.title, body: "No lo olvides !", sound: ALARM_SOUND },
+      // The title is not shown: notifications appear on the lock screen, where the reminder text would be read by anyone.
+      content: { title: "Recordatorio", body: "No lo olvides !", sound: ALARM_SOUND },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: new Date(reminder.remindAt),
@@ -67,7 +68,7 @@ async function armReminder(reminder: Reminder): Promise<void> {
     await Notifications.scheduleNotificationAsync({
       identifier: dayBeforeId(reminder.id),
       content: {
-        title: `Mañana: ${reminder.title}`,
+        title: "Recordatorio de mañana",
         body: `Tienes un recordatorio a las ${time}.`,
         sound: true,
       },

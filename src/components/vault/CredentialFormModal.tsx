@@ -185,8 +185,8 @@ export function CredentialFormModal({ visible, onClose, onSaved }: CredentialFor
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="new-password"
-              textContentType="newPassword"
+              autoComplete="off"
+              textContentType="none"
             />
           </View>
         </>

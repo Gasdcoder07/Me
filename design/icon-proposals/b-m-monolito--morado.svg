@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Mi - monolithic M, capsule counters (morado)">
+  <title>Mi - monolithic M, capsule counters (morado)</title>
+  <defs>
+    <radialGradient id="w0" cx="20%" cy="15%" r="60%">
+      <stop offset="0" stop-color="#8141aa" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#8141aa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w1" cx="85%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#8141aa" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#8141aa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" cx="25%" cy="80%" r="60%">
+      <stop offset="0" stop-color="#4b146e" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#4b146e" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w3" cx="80%" cy="95%" r="50%">
+      <stop offset="0" stop-color="#8141aa" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#8141aa" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="#4b146e"/>
+  <rect width="1024" height="1024" fill="url(#w0)"/>
+  <rect width="1024" height="1024" fill="url(#w1)"/>
+  <rect width="1024" height="1024" fill="url(#w2)"/>
+  <rect width="1024" height="1024" fill="url(#w3)"/>
+  <path d="M254 630 V 452 C 254 398 322 386 354 434 L 512 600 L 670 434 C 702 386 770 398 770 452 V 630" fill="none" stroke="#ffffff" stroke-width="164" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

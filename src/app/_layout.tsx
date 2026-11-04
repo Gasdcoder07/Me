@@ -20,13 +20,15 @@ import { CREDENTIALS_DATABASE_NAME, migrateDatabase } from '@/data/credentials';
 import { migrateDocuments } from '@/data/documents';
 import { migrateOwner } from '@/data/owner';
 import { migrateReminders } from '@/data/reminders';
+import { sqlCipherKeyStatement } from '@/services/crypto';
 import { syncReminderNotifications } from '@/services/reminderNotifications';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 // Module-level so its identity never changes. SQLiteProvider closes and reopens the database
 // whenever onInit changes, which would cut off queries still running.
-// Only schema is touched here: no vault data is read before the biometric unlock.
+// The key statement must run first: until it does, the file is unreadable. AppLock loads the key before this runs.
 async function initializeDatabase(db: SQLiteDatabase) {
+  await db.execAsync(sqlCipherKeyStatement());
   await migrateDatabase(db);
   await migrateDocuments(db);
   await migrateReminders(db);
@@ -73,27 +75,26 @@ export default function RootLayout() {
     Outfit_700Bold,
   });
 
-  // The splash covers both waits: the fonts here, and the database opening inside Suspense below.
-  // Waiting for the fonts keeps the first frame from showing system fallbacks.
-  // The database opens once and stays open. AppLock sits inside it, so locking the app
-  // unmounts the screens but never closes the database under a query still in flight.
+  // The splash covers the font wait. Waiting for the fonts keeps the first frame from showing system fallbacks.
+  // AppLock is the outermost gate after the fonts: the encrypted database opens only inside it, after the biometric
+  // unlock. Locking the app closes the database and unmounts the screens together.
   // GestureHandlerRootView lets the swipe-to-delete rows receive pan gestures.
-  // ThemeProvider sits outside everything, so the splash screens and the database wait use the saved theme too.
+  // ThemeProvider sits outside everything, so the splash screens and the lock screen use the saved theme too.
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <ThemedStatusBar />
         {fontsLoaded ? (
-          <Suspense fallback={<SplashScreen />}>
-            <SQLiteProvider databaseName={CREDENTIALS_DATABASE_NAME} onInit={initializeDatabase} useSuspense>
-              <ReminderAlarmSync />
-              <LaunchGate>
-                <AppLock>
+          <AppLock>
+            <Suspense fallback={<SplashScreen />}>
+              <SQLiteProvider databaseName={CREDENTIALS_DATABASE_NAME} onInit={initializeDatabase} useSuspense>
+                <ReminderAlarmSync />
+                <LaunchGate>
                   <ThemedStack />
-                </AppLock>
-              </LaunchGate>
-            </SQLiteProvider>
-          </Suspense>
+                </LaunchGate>
+              </SQLiteProvider>
+            </Suspense>
+          </AppLock>
         ) : (
           <SplashScreen showTitle={false} />
         )}

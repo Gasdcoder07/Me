@@ -1,8 +1,9 @@
 import * as Crypto from 'expo-crypto';
-import { Directory, File, Paths } from 'expo-file-system';
+import { Directory, File, FileMode, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { DocumentCategory, StoredDocument } from '@/types/documents';
+import { openBytes, sealBytes } from '@/services/crypto';
 
 // Fixed ids so the built-in categories can be recognised by the UI (icons, defaults).
 export const BUILTIN_CATEGORY_IDS = {
@@ -15,12 +16,14 @@ const builtinCategories: (DocumentCategory & { sortOrder: number })[] = [
   { id: BUILTIN_CATEGORY_IDS.school, name: 'Documento escolar', sortOrder: 1 },
 ];
 
-// Files are copied here so they outlive the picker's cache directory.
+// Encrypted copies live here, in the app's document folder. Only the sealed bytes are written: the plain file never is.
 const documentsDirectory = () => new Directory(Paths.document, 'documents');
+const encryptedFile = (documentId: string) => new File(documentsDirectory(), `${documentId}.enc`);
 
-// The viewer reads the copied files through these URIs. The directory is also the read scope for WebView.
-export const documentsDirectoryUri = (): string => documentsDirectory().uri;
-export const documentFileUri = (fileName: string): string => new File(documentsDirectory(), fileName).uri;
+// Plain copies exist only while a document is open or being shared. They sit in the cache, one folder per
+// document, and are removed when the viewer closes, when the share sheet is dismissed, and on lock.
+const decryptedDirectory = () => new Directory(Paths.cache, 'mi-decrypted');
+export const decryptedDirectoryUri = (): string => decryptedDirectory().uri;
 
 // Runs on every launch: the table creation and the seed are both idempotent.
 export async function migrateDocuments(db: SQLiteDatabase): Promise<void> {
@@ -95,27 +98,67 @@ export async function countDocumentsInCategory(db: SQLiteDatabase, categoryId: s
 export async function deleteDocumentCategory(db: SQLiteDatabase, categoryId: string): Promise<void> {
   if (isBuiltinCategory(categoryId)) throw new Error('Built-in categories cannot be deleted');
 
-  const files = await db.getAllAsync<{ fileName: string }>(
-    'SELECT file_name AS fileName FROM documents WHERE category_id = ?',
-    categoryId,
-  );
+  const ids = await db.getAllAsync<{ id: string }>('SELECT id FROM documents WHERE category_id = ?', categoryId);
 
   await db.withTransactionAsync(async () => {
     await db.runAsync('DELETE FROM documents WHERE category_id = ?', categoryId);
     await db.runAsync('DELETE FROM document_categories WHERE id = ?', categoryId);
   });
 
-  for (const file of files) {
-    removeStoredFile(file.fileName);
+  for (const { id } of ids) {
+    removeStoredFile(id);
   }
 }
 
-function removeStoredFile(fileName: string): void {
+function removeStoredFile(documentId: string): void {
   try {
-    const file = new File(documentsDirectory(), fileName);
+    const file = encryptedFile(documentId);
     if (file.exists) file.delete();
   } catch {
     // The row is already gone, so a leftover file is only wasted space. Nothing to recover here.
+  }
+}
+
+// Removes every plain copy. Called on lock, so nothing decrypted outlives the unlocked session.
+export function clearDecryptedFiles(): void {
+  try {
+    const directory = decryptedDirectory();
+    if (directory.exists) directory.delete();
+  } catch {
+    // Nothing to recover here: the cache folder is also cleared by the system when space runs low.
+  }
+}
+
+// Each use gets its own folder ('preview' for the viewer, 'share' for the share sheet), so closing one never
+// removes the copy the other still needs. The copy keeps the real file name, so the share sheet shows it.
+// The caller must call closeDocumentFile with the same use when it is done.
+export type DecryptedCopyUse = 'preview' | 'share';
+
+export async function openDocumentFile(document: StoredDocument, use: DecryptedCopyUse): Promise<File> {
+  const sealed = await encryptedFile(document.id).bytes();
+  const plain = openBytes(sealed);
+
+  const folder = new Directory(decryptedDirectory(), `${document.id}-${use}`);
+  if (!folder.exists) folder.create({ intermediates: true });
+
+  const file = new File(folder, document.fileName.replace(/[/\\]/g, '_'));
+  file.create({ overwrite: true });
+  const handle = file.open(FileMode.ReadWrite);
+  try {
+    await handle.writeBytes(plain);
+  } finally {
+    handle.close();
+  }
+
+  return file;
+}
+
+export function closeDocumentFile(document: StoredDocument, use: DecryptedCopyUse): void {
+  try {
+    const folder = new Directory(decryptedDirectory(), `${document.id}-${use}`);
+    if (folder.exists) folder.delete();
+  } catch {
+    // The folder is wiped on lock anyway.
   }
 }
 
@@ -133,18 +176,28 @@ export type NewDocument = {
   mimeType: string | null;
 };
 
-// Copies the picked file into the app's storage, then records it. If the insert fails,
-// the copied file is removed so no orphan is left behind.
+// Reads the picked file, seals it with the master key and writes only the sealed bytes, then records the row.
+// The picker's cache copy is deleted once it is sealed. If the insert fails, the sealed file is removed.
 export async function importDocument(db: SQLiteDatabase, input: NewDocument): Promise<StoredDocument> {
   const id = Crypto.randomUUID();
-  const extension = fileExtension(input.sourceName);
-  const fileName = extension ? `${id}.${extension}` : id;
 
   const directory = documentsDirectory();
   if (!directory.exists) directory.create({ intermediates: true });
 
-  const destination = new File(directory, fileName);
-  await new File(input.sourceUri).copy(destination);
+  const source = new File(input.sourceUri);
+  const sealed = sealBytes(await source.bytes());
+
+  const destination = encryptedFile(id);
+  destination.create();
+  const handle = destination.open(FileMode.ReadWrite);
+  try {
+    await handle.writeBytes(sealed);
+  } finally {
+    handle.close();
+  }
+
+  // The picker's copy is a plain file in the cache. Remove it now, so the only copy left is the sealed one.
+  removeCachedSource(source);
 
   const createdAt = Date.now();
 
@@ -154,7 +207,7 @@ export async function importDocument(db: SQLiteDatabase, input: NewDocument): Pr
       id,
       input.name,
       input.categoryId,
-      fileName,
+      input.sourceName,
       input.mimeType,
       createdAt,
     );
@@ -167,27 +220,24 @@ export async function importDocument(db: SQLiteDatabase, input: NewDocument): Pr
     id,
     name: input.name,
     categoryId: input.categoryId,
-    fileName,
+    fileName: input.sourceName,
     mimeType: input.mimeType,
     createdAt,
   };
 }
 
-// Removes the row, then the copied file (best effort, see removeStoredFile).
-export async function deleteDocument(db: SQLiteDatabase, documentId: string): Promise<void> {
-  const row = await db.getFirstAsync<{ fileName: string }>(
-    'SELECT file_name AS fileName FROM documents WHERE id = ?',
-    documentId,
-  );
-
-  await db.runAsync('DELETE FROM documents WHERE id = ?', documentId);
-
-  if (row) removeStoredFile(row.fileName);
+// Only ever deletes a file inside the cache folder, so a source picked from elsewhere is never touched.
+function removeCachedSource(source: File): void {
+  try {
+    if (source.uri.startsWith(Paths.cache.uri) && source.exists) source.delete();
+  } catch {
+    // Best effort: if the delete fails, the system clears the cache when space runs low.
+  }
 }
 
-function fileExtension(fileName: string): string | null {
-  const dot = fileName.lastIndexOf('.');
-  if (dot <= 0 || dot === fileName.length - 1) return null;
+// Removes the row, then the sealed file (best effort, see removeStoredFile).
+export async function deleteDocument(db: SQLiteDatabase, documentId: string): Promise<void> {
+  await db.runAsync('DELETE FROM documents WHERE id = ?', documentId);
 
-  return fileName.slice(dot + 1).toLowerCase();
+  removeStoredFile(documentId);
 }

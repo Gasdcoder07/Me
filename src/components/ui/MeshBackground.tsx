@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { type Appearance } from '@/constants/themes';
@@ -27,19 +27,23 @@ export function MeshBackground() {
   // Colours come from the theme tokens: each wash picks one accent of the active colour theme.
   const tones = [colors.highlight, colors.lava[0], colors.accent, colors.lava[2]];
 
+  // The canvas fills a plain wrapper rather than being positioned itself: a percentage size is measured against
+  // the parent's content box, so any padding on the parent (a safe-area inset) would cut the mesh short of an edge.
   return (
-    <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width="100%" height="100%">
-      <Defs>
-        {washes.map((wash, index) => (
-          <RadialGradient key={wash.id} id={wash.id} cx={wash.cx} cy={wash.cy} r={wash.r}>
-            <Stop offset="0" stopColor={tones[index]} stopOpacity={strength} />
-            <Stop offset="1" stopColor={tones[index]} stopOpacity={0} />
-          </RadialGradient>
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <Svg width="100%" height="100%">
+        <Defs>
+          {washes.map((wash, index) => (
+            <RadialGradient key={wash.id} id={wash.id} cx={wash.cx} cy={wash.cy} r={wash.r}>
+              <Stop offset="0" stopColor={tones[index]} stopOpacity={strength} />
+              <Stop offset="1" stopColor={tones[index]} stopOpacity={0} />
+            </RadialGradient>
+          ))}
+        </Defs>
+        {washes.map((wash) => (
+          <Rect key={wash.id} x="0" y="0" width="100%" height="100%" fill={`url(#${wash.id})`} />
         ))}
-      </Defs>
-      {washes.map((wash) => (
-        <Rect key={wash.id} x="0" y="0" width="100%" height="100%" fill={`url(#${wash.id})`} />
-      ))}
-    </Svg>
+      </Svg>
+    </View>
   );
 }

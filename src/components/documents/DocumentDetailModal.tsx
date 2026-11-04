@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Alert, Image, Text, View } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
 import type * as ExpoSharing from 'expo-sharing';
 import type WebViewComponent from 'react-native-webview';
 
@@ -7,7 +9,7 @@ import { CircleButton } from '@/components/ui/CircleButton';
 import { DetailField } from '@/components/ui/DetailField';
 import { Tag } from '@/components/ui/Tag';
 import { useTheme } from '@/theme/ThemeProvider';
-import { documentFileUri, documentsDirectoryUri } from '@/data/documents';
+import { closeDocumentFile, decryptedDirectoryUri, openDocumentFile } from '@/data/documents';
 import type { StoredDocument } from '@/types/documents';
 import { isPdfDocument } from '@/types/documents';
 import { formatLongDay } from '@/utils/dates';
@@ -25,9 +27,9 @@ type DocumentDetailModalProps = {
 export function DocumentDetailModal({ document, categoryName, onClose }: DocumentDetailModalProps) {
   const { colors } = useTheme();
   const isPdf = isPdfDocument(document);
-  const uri = documentFileUri(document.fileName);
 
-  // Opens the system share sheet, where the file can be saved to the Files app.
+  // Re-checks the user, then opens the share sheet with a plain copy. The stored document is never changed,
+  // and the copy is deleted as soon as the sheet closes.
   const handleDownload = async () => {
     if (!sharing) {
       Alert.alert('Descarga no disponible', 'Reconstruye la app una vez para activar la descarga.');
@@ -35,13 +37,23 @@ export function DocumentDetailModal({ document, categoryName, onClose }: Documen
     }
 
     try {
-      await sharing.shareAsync(uri, {
+      const auth = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Confirma para compartir el documento',
+        cancelLabel: 'Cancelar',
+        disableDeviceFallback: false,
+      });
+      if (!auth.success) return;
+
+      const file = await openDocumentFile(document, 'share');
+      await sharing.shareAsync(file.uri, {
         mimeType: document.mimeType ?? undefined,
         UTI: isPdf ? 'com.adobe.pdf' : 'public.image',
         dialogTitle: document.name,
       });
     } catch {
       Alert.alert('No se pudo descargar', 'Inténtalo de nuevo.');
+    } finally {
+      closeDocumentFile(document, 'share');
     }
   };
 
@@ -51,7 +63,7 @@ export function DocumentDetailModal({ document, categoryName, onClose }: Documen
         className="overflow-hidden rounded-block"
         style={{ width: PREVIEW_SIZE, height: PREVIEW_SIZE, alignSelf: "center", backgroundColor: colors.chip }}
       >
-        <CoverViewer uri={uri} isPdf={isPdf} name={document.name} />
+        <CoverViewer document={document} isPdf={isPdf} />
       </View>
 
       {/* pt-2 + line height >= 1.2x font size: keeps the top of the glyphs inside the line box. */}
@@ -79,9 +91,8 @@ export function DocumentDetailModal({ document, categoryName, onClose }: Documen
 }
 
 type CoverViewerProps = {
-  uri: string;
+  document: StoredDocument;
   isPdf: boolean;
-  name: string;
 };
 
 // expo-sharing is a native module too. Builds made before it was added do not contain it, and importing it throws,
@@ -111,9 +122,43 @@ function loadWebView(): typeof WebViewComponent | null {
   }
 }
 
-// WebView renders PDFs on iOS from a local file. The read scope is the documents folder, so the
-// viewer cannot reach anything else on the device. Android WebView does not draw PDFs inline.
-function CoverViewer({ uri, isPdf, name }: CoverViewerProps) {
+// The plain copy is made when the viewer mounts and deleted when it unmounts. Nothing is rendered from
+// the sealed file directly. WebView renders PDFs on iOS from that copy, and its read scope is the copy folder only.
+// Android WebView does not draw PDFs inline.
+function CoverViewer({ document, isPdf }: CoverViewerProps) {
+  const [uri, setUri] = useState<string | null>(null);
+  const [hasFailed, setHasFailed] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    openDocumentFile(document, 'preview')
+      .then((file) => {
+        // The viewer closed before the copy was ready, so the copy is removed right away.
+        if (isMounted) setUri(file.uri);
+        else closeDocumentFile(document, 'preview');
+      })
+      .catch(() => {
+        if (isMounted) setHasFailed(true);
+      });
+
+    return () => {
+      isMounted = false;
+      closeDocumentFile(document, 'preview');
+    };
+  }, [document]);
+
+  if (hasFailed) {
+    return (
+      <View className="flex-1 items-center justify-center p-6">
+        <Text className="text-center font-regular text-sm text-ink-muted">No se pudo abrir el documento.</Text>
+      </View>
+    );
+  }
+
+  // Blank until the copy is ready. The read is local and fast, so no spinner is shown.
+  if (uri === null) return <View style={{ flex: 1 }} />;
+
   if (isPdf) {
     if (!WebView) {
       return (
@@ -129,7 +174,7 @@ function CoverViewer({ uri, isPdf, name }: CoverViewerProps) {
       <WebView
         source={{ uri }}
         originWhitelist={['file://*']}
-        allowingReadAccessToURL={documentsDirectoryUri()}
+        allowingReadAccessToURL={decryptedDirectoryUri()}
         style={{ flex: 1, backgroundColor: 'transparent' }}
       />
     );
@@ -139,7 +184,7 @@ function CoverViewer({ uri, isPdf, name }: CoverViewerProps) {
     <Image
       source={{ uri }}
       resizeMode="contain"
-      accessibilityLabel={`Portada de ${name}`}
+      accessibilityLabel={`Portada de ${document.name}`}
       style={{ flex: 1 }}
     />
   );

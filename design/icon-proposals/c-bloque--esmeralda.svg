@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Mi - M carved from the block (esmeralda)">
+  <title>Mi - M carved from the block (esmeralda)</title>
+  <defs>
+    <radialGradient id="w0" cx="20%" cy="15%" r="60%">
+      <stop offset="0" stop-color="#6eb5b3" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#6eb5b3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w1" cx="85%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#6eb5b3" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#6eb5b3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" cx="25%" cy="80%" r="60%">
+      <stop offset="0" stop-color="#295654" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#295654" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w3" cx="80%" cy="95%" r="50%">
+      <stop offset="0" stop-color="#6eb5b3" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#6eb5b3" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="carve">
+      <rect x="168" y="168" width="688" height="688" rx="200" fill="#fff"/>
+      <path d="M330 622 V 452 C 330 410 382 400 408 436 L 512 550 L 616 436 C 642 400 694 410 694 452 V 622" fill="none" stroke="#000" stroke-width="104" stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <rect width="1024" height="1024" fill="#295654"/>
+  <rect width="1024" height="1024" fill="url(#w0)"/>
+  <rect width="1024" height="1024" fill="url(#w1)"/>
+  <rect width="1024" height="1024" fill="url(#w2)"/>
+  <rect width="1024" height="1024" fill="url(#w3)"/>
+  <rect x="168" y="168" width="688" height="688" rx="200" fill="#ffffff" mask="url(#carve)"/>
+</svg>

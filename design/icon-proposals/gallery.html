@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Mi — propuestas de icono</title>
+<style>
+ body{margin:0;background:#e8eef3;font:13px/1.4 -apple-system,system-ui,sans-serif;color:#111;padding:30px}
+ h1{font-size:19px;margin:0 0 4px} p.sub{margin:0 0 24px;color:#555;font-size:12px}
+ .row{display:flex;gap:24px;align-items:flex-start;margin-bottom:30px;flex-wrap:wrap}
+ .big{width:120px;height:120px;border-radius:27px;overflow:hidden;display:block;box-shadow:0 6px 18px rgba(0,0,0,.16)}
+ .sm{width:60px;height:60px;border-radius:14px;overflow:hidden;display:block;margin:9px auto 0;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+ .lbl{font-size:10px;color:#777;margin-top:7px;text-align:center}
+ h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.09em;color:#333}
+ .dark{background:#06070a;padding:16px;border-radius:16px;display:inline-flex;gap:18px;align-items:center}
+</style></head><body>
+<h1>Mi — tres propuestas de icono</h1>
+<p class="sub">1024×1024 · fondo plano del acento + mesh a 0.08 · 120px, 60px real, y 60px sobre fondo oscuro</p>
+<div id="out"></div>
+<script>
+const props=[["a-mi-coral","A · “Mi” — M líquida + tilde coral"],
+             ["b-m-monolito","B · M monolítica — contraformas capsulares"],
+             ["c-bloque","C · El bloque — M tallada en negativo"]];
+const themes=["niebla","anil","esmeralda","morado"];
+document.getElementById('out').innerHTML=props.map(([k,t])=>
+ `<h2>${t}</h2><div class="row">`+themes.map(th=>
+  `<div><img class="big" src="${k}--${th}.svg"><img class="sm" src="${k}--${th}.svg"><div class="lbl">${th}</div></div>`
+ ).join('')+`<div class="dark">`+themes.map(th=>
+  `<img class="sm" style="margin:0" src="${k}--${th}.svg">`
+ ).join('')+`</div></div>`).join('');
+</script></body></html>

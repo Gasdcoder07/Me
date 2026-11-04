@@ -6,6 +6,8 @@ import { Icon } from "@/components/icons/Icon";
 import { useTheme } from "@/theme/ThemeProvider";
 
 const COPIED_FEEDBACK_MS = 1500;
+// A copied secret does not stay on the clipboard, where any app or other device could read it.
+const CLIPBOARD_CLEAR_MS = 30_000;
 
 type DetailFieldProps = {
   label: string;
@@ -20,6 +22,7 @@ export function DetailField({ label, value, copyable = false }: DetailFieldProps
   const { colors } = useTheme();
   const [isCopied, setIsCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
@@ -34,6 +37,17 @@ export function DetailField({ label, value, copyable = false }: DetailFieldProps
     setIsCopied(true);
     clearTimeout(resetTimer.current);
     resetTimer.current = setTimeout(() => setIsCopied(false), COPIED_FEEDBACK_MS);
+
+    // Clears only if the clipboard still holds this value, so a later copy from elsewhere is left alone.
+    // Not cancelled on unmount: the value must still be cleared after the screen closes.
+    clearTimeout(clearTimer.current);
+    clearTimer.current = setTimeout(async () => {
+      try {
+        if ((await Clipboard.getStringAsync()) === value) await Clipboard.setStringAsync("");
+      } catch {
+        // Nothing to recover: the clipboard simply keeps its value.
+      }
+    }, CLIPBOARD_CLEAR_MS);
   };
 
   return (

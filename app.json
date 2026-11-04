@@ -9,16 +9,23 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mi-app"
+      "bundleIdentifier": "com.gasdcoder07.me",
+      "icon": {
+        "light": "./assets/icon-ios-light.png",
+        "dark": "./assets/icon-ios-dark.png",
+        "tinted": "./assets/icon-ios-tinted.png"
+      },
+      "appleTeamId": "F4ZJK3XTVL"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#808080",
+        "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "allowBackup": false,
       "permissions": [
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"
@@ -44,7 +51,12 @@
           "faceIDPermission": "Mi usa Face ID para proteger tus claves."
         }
       ],
-      "expo-sqlite",
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
       "./plugins/withoutPushEntitlement",
       [
         "expo-notifications",
@@ -54,7 +66,15 @@
           ]
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

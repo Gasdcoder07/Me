@@ -4,7 +4,7 @@ import { useIsFocused } from 'expo-router';
 import Animated, {
   cancelAnimation,
   Easing,
-  useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withDelay,
   withRepeat,
@@ -25,6 +25,11 @@ type LavaBlob = {
   duration: number;
   delay: number;
 };
+
+// The design space the blob coordinates are written in. The canvas covers its parent the way
+// preserveAspectRatio="xMidYMid slice" would: scaled to cover, centred, overflow clipped.
+const VIEW_WIDTH = 400;
+const VIEW_HEIGHT = 300;
 
 const lavaBlobs: LavaBlob[] = [
   {
@@ -66,8 +71,6 @@ const lavaBlobs: LavaBlob[] = [
   },
 ];
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
 type LavaBackgroundProps = {
   // Freezes the drift while an overlay covers the surface, so it does not compete with the overlay's animation.
   paused?: boolean;
@@ -81,34 +84,37 @@ type LavaCanvasProps = {
 
 // The glow drawn at a known size. Use it directly when there is no navigation focus to read (the splash),
 // otherwise go through LavaBackground.
+//
+// Each blob is its own static SVG inside an Animated.View, and only the view's transform animates.
+// Animating the circle's cx/cy/r instead would make react-native-svg redraw the whole vector canvas on
+// the main thread on every frame; a transform is composited, so the raster is drawn once and reused.
 export function LavaCanvas({ width, height, isRunning }: LavaCanvasProps) {
   const { colors } = useTheme();
 
+  // Cover the parent and centre the overflow, the way preserveAspectRatio="xMidYMid slice" does.
+  const scale = Math.max(width / VIEW_WIDTH, height / VIEW_HEIGHT);
+  const offsetX = (width - VIEW_WIDTH * scale) / 2;
+  const offsetY = (height - VIEW_HEIGHT * scale) / 2;
+
   return (
-    <Svg
-      style={StyleSheet.absoluteFill}
-      width={width}
-      height={height}
-      viewBox="0 0 400 300"
-      preserveAspectRatio="xMidYMid slice"
-    >
-      <Defs>
-        {lavaBlobs.map((blob) => (
-          <RadialGradient key={blob.id} id={blob.id} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={colors.lava[blob.tone]} stopOpacity={blob.peakOpacity} />
-            <Stop offset="1" stopColor={colors.lava[blob.tone]} stopOpacity={0} />
-          </RadialGradient>
-        ))}
-      </Defs>
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
       {lavaBlobs.map((blob) => (
-        <LavaGlow key={blob.id} blob={blob} isRunning={isRunning} />
+        <LavaGlow
+          key={blob.id}
+          blob={blob}
+          color={colors.lava[blob.tone]}
+          isRunning={isRunning}
+          scale={scale}
+          offsetX={offsetX}
+          offsetY={offsetY}
+        />
       ))}
-    </Svg>
+    </View>
   );
 }
 
 // Glow layer that fills its parent. The parent is the black surface and must clip (overflow: hidden).
-// The SVG waits for its measured size so the glow covers the whole surface, edge to edge.
+// The canvas waits for its measured size so the glow covers the whole surface, edge to edge.
 // Tabs keep their screens mounted, so the drift also stops while this screen is not focused.
 export function LavaBackground({ paused = false }: LavaBackgroundProps) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
@@ -117,7 +123,9 @@ export function LavaBackground({ paused = false }: LavaBackgroundProps) {
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
-    setSize({ width, height });
+    setSize((current) =>
+      current && current.width === width && current.height === height ? current : { width, height },
+    );
   };
 
   return (
@@ -129,52 +137,67 @@ export function LavaBackground({ paused = false }: LavaBackgroundProps) {
 
 type LavaGlowProps = {
   blob: LavaBlob;
+  color: string;
   isRunning: boolean;
+  scale: number;
+  offsetX: number;
+  offsetY: number;
 };
 
-// Each glow moves between its two positions forever, reversing with a sine ease so the motion never snaps.
+// One glow. It is drawn once at its largest radius, then a single progress value moves it between its two
+// positions forever, reversing with a sine ease so the motion never snaps. Position and radius share the
+// progress, so they stay in phase exactly as three separate animations of the same duration did.
 // When not running, the animation is cancelled and the glow holds where it is.
-function LavaGlow({ blob, isRunning }: LavaGlowProps) {
-  const cx = useSharedValue(blob.from.cx);
-  const cy = useSharedValue(blob.from.cy);
-  const r = useSharedValue(blob.from.r);
+function LavaGlow({ blob, color, isRunning, scale, offsetX, offsetY }: LavaGlowProps) {
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    const stop = () => {
-      cancelAnimation(cx);
-      cancelAnimation(cy);
-      cancelAnimation(r);
-    };
-
     if (!isRunning) {
-      stop();
+      cancelAnimation(progress);
       return;
     }
 
     const motion = { duration: blob.duration, easing: Easing.inOut(Easing.sin) };
-    const loop = (target: number) => withDelay(blob.delay, withRepeat(withTiming(target, motion), -1, true));
+    progress.value = withDelay(blob.delay, withRepeat(withTiming(1, motion), -1, true));
 
-    cx.value = loop(blob.to.cx);
-    cy.value = loop(blob.to.cy);
-    r.value = loop(blob.to.r);
+    // Unmounting (the lock screen, a screen change) must stop the infinite loop too, not just pause it.
+    return () => cancelAnimation(progress);
+  }, [blob, isRunning, progress]);
 
-    // Unmounting (the lock screen, a screen change) must stop the infinite loops too, not just pause them.
-    return stop;
-  }, [blob, isRunning, cx, cy, r]);
+  // Drawn at the larger of the two radii, so the animated scale only ever shrinks the raster and the glow
+  // never looks soft from being blown up.
+  const peakRadius = Math.max(blob.from.r, blob.to.r);
+  const size = peakRadius * 2 * scale;
+  // Placed so the circle's centre sits on `from`, which is where progress 0 leaves it.
+  const left = offsetX + (blob.from.cx - peakRadius) * scale;
+  const top = offsetY + (blob.from.cy - peakRadius) * scale;
+  const shiftX = (blob.to.cx - blob.from.cx) * scale;
+  const shiftY = (blob.to.cy - blob.from.cy) * scale;
+  const fromScale = blob.from.r / peakRadius;
+  const toScale = blob.to.r / peakRadius;
 
-  const animatedProps = useAnimatedProps(() => ({
-    cx: cx.value,
-    cy: cy.value,
-    r: r.value,
-  }));
+  const glowStyle = useAnimatedStyle(
+    () => ({
+      transform: [
+        { translateX: progress.value * shiftX },
+        { translateY: progress.value * shiftY },
+        { scale: fromScale + progress.value * (toScale - fromScale) },
+      ],
+    }),
+    [shiftX, shiftY, fromScale, toScale],
+  );
 
   return (
-    <AnimatedCircle
-      cx={blob.from.cx}
-      cy={blob.from.cy}
-      r={blob.from.r}
-      fill={`url(#${blob.id})`}
-      animatedProps={animatedProps}
-    />
+    <Animated.View style={[{ position: 'absolute', left, top, width: size, height: size }, glowStyle]}>
+      <Svg width={size} height={size} viewBox="0 0 100 100">
+        <Defs>
+          <RadialGradient id={blob.id} cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={color} stopOpacity={blob.peakOpacity} />
+            <Stop offset="1" stopColor={color} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Circle cx="50" cy="50" r="50" fill={`url(#${blob.id})`} />
+      </Svg>
+    </Animated.View>
   );
 }

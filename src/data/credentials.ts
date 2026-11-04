@@ -15,6 +15,12 @@ export type NewCredential =
 // (a password, or the identity datum) is stored in SecureStore (Keychain / Keystore) under this key.
 const secretKey = (credentialId: string) => `credential.${credentialId}`;
 
+// The secret is readable only while the device is unlocked, never leaves this device (no iCloud Keychain,
+// no encrypted backup), and is deleted if the device passcode is removed.
+const SECRET_OPTIONS: SecureStore.SecureStoreOptions = {
+  keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+};
+
 type CredentialRow = {
   id: string;
   title: string;
@@ -71,7 +77,7 @@ export async function createCredential(db: SQLiteDatabase, input: NewCredential)
   const id = Crypto.randomUUID();
   const username = input.category === 'identity' ? null : input.username;
 
-  await SecureStore.setItemAsync(secretKey(id), input.secret);
+  await SecureStore.setItemAsync(secretKey(id), input.secret, SECRET_OPTIONS);
 
   try {
     await db.runAsync(
@@ -91,7 +97,7 @@ export async function createCredential(db: SQLiteDatabase, input: NewCredential)
 }
 
 export function getCredentialSecret(credentialId: string): Promise<string | null> {
-  return SecureStore.getItemAsync(secretKey(credentialId));
+  return SecureStore.getItemAsync(secretKey(credentialId), SECRET_OPTIONS);
 }
 
 // The row goes first: if that fails, the secret is still there and nothing is lost. The secret is removed after.
